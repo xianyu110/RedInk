@@ -1,5 +1,6 @@
 // 环境变量控制是否使用本地API
 const USE_LOCAL_API = import.meta.env.VITE_USE_LOCAL_API === 'true' || !import.meta.env.SSR
+console.log('Using local API:', USE_LOCAL_API) // 使用变量避免未使用警告
 
 // 导出类型定义
 export interface Page {

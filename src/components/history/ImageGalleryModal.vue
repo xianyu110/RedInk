@@ -41,6 +41,14 @@
         </div>
 
         <div class="header-actions">
+          <button class="btn" @click="$emit('export')" style="background: white; border: 1px solid var(--border-color);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            导出文件
+          </button>
           <button class="btn download-btn" @click="$emit('downloadAll')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -144,6 +152,7 @@ defineEmits<{
   (e: 'downloadAll'): void
   (e: 'download', filename: string, index: number): void
   (e: 'regenerate', index: number): void
+  (e: 'export'): void
 }>()
 
 // 标题展开状态

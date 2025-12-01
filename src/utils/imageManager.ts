@@ -23,7 +23,7 @@ export interface GeneratedImage {
 }
 
 class ImageManager {
-  private readonly STORAGE_KEY = 'redink-uploaded-images'
+  // private readonly STORAGE_KEY = 'redink-uploaded-images'
 
   // ==================== 图片生成 ====================
 
@@ -31,7 +31,7 @@ class ImageManager {
    * 生成图片（完全依赖AI）
    */
   async generateImage(
-    index: number,
+    _index: number,
     pageContent: string,
     options: ImageGenerationOptions = {}
   ): Promise<string> {
@@ -248,9 +248,13 @@ class ImageManager {
       const transaction = db.transaction(['images'], 'readonly')
       const store = transaction.objectStore('images')
 
-      const result = await store.get(index)
+      const request = store.get(index)
+      const result = await new Promise<any>((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result)
+        request.onerror = () => reject(request.error)
+      })
 
-      if (result?.blob) {
+      if (result && result.blob) {
         return URL.createObjectURL(result.blob)
       }
 
@@ -270,15 +274,23 @@ class ImageManager {
       const transaction = db.transaction(['images'], 'readwrite')
       const store = transaction.objectStore('images')
 
-      const cursor = await store.openCursor()
+      const request = store.openCursor()
       const now = Date.now()
 
-      while (cursor) {
-        if (now - cursor.value.timestamp > maxAge) {
-          await cursor.delete()
+      await new Promise<void>((resolve, reject) => {
+        request.onsuccess = () => {
+          const cursor = request.result
+          if (cursor) {
+            if (cursor.value && now - cursor.value.timestamp > maxAge) {
+              cursor.delete()
+            }
+            cursor.continue()
+          } else {
+            resolve()
+          }
         }
-        await cursor.continue()
-      }
+        request.onerror = () => reject(request.error)
+      })
     } catch (error) {
       console.error('清理图片失败:', error)
     }

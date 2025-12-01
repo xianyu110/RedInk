@@ -108,7 +108,7 @@ const emit = defineEmits<{
   save: []
 }>()
 
-const props = defineProps<{
+defineProps<{
   isVisible: boolean
 }>()
 

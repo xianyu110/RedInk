@@ -93,7 +93,7 @@ interface UploadedImage {
 }
 
 // 定义 Props
-const props = defineProps<{
+defineProps<{
   modelValue: string
   loading: boolean
 }>()

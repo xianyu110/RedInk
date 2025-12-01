@@ -81,7 +81,7 @@
       <GalleryCard
         v-for="record in records"
         :key="record.id"
-        :record="record"
+        :record="record as any"
         @preview="viewImages"
         @edit="loadRecord"
         @delete="confirmDelete"
@@ -106,6 +106,7 @@
       @regenerate="regenerateHistoryImage"
       @downloadAll="downloadAllImages"
       @download="downloadImage"
+      @export="showExportModal"
     />
 
     <!-- 大纲查看模态框 -->
@@ -116,11 +117,21 @@
       @close="showOutlineModal = false"
     />
 
+    <!-- 导出模态框 -->
+    <ExportModal
+      :visible="exportModalVisible"
+      :images="imagesForExport"
+      @close="exportModalVisible = false"
+      @exportStart="handleExportStart"
+      @exportComplete="handleExportComplete"
+      @exportError="handleExportError"
+    />
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   getHistoryList,
@@ -134,6 +145,8 @@ import {
   scanAllTasks
 } from '../api'
 import { useGeneratorStore } from '../stores/generator'
+import ExportModal from '../components/ExportModal.vue'
+import type { ImageData } from '../utils/exportService'
 
 // 引入组件
 import StatsOverview from '../components/history/StatsOverview.vue'
@@ -159,6 +172,23 @@ const viewingRecord = ref<any>(null)
 const regeneratingImages = ref<Set<number>>(new Set())
 const showOutlineModal = ref(false)
 const isScanning = ref(false)
+
+// 导出状态
+const exportModalVisible = ref(false)
+
+// 准备导出的图片数据
+const imagesForExport = computed<ImageData[]>(() => {
+  if (!viewingRecord.value) return []
+
+  return viewingRecord.value.images.generated
+    .filter((img: string) => img) // 过滤掉空值
+    .map((img: string, idx: number) => ({
+      url: `/api/images/${viewingRecord.value.images.task_id}/${img}?thumbnail=false`,
+      index: idx,
+      title: `第 ${idx + 1} 页`,
+      description: ''
+    }))
+})
 
 /**
  * 加载历史记录列表
@@ -229,7 +259,7 @@ async function loadRecord(id: string) {
     store.recordId = res.record.id
     if (res.record.images.generated.length > 0) {
       store.taskId = res.record.images.task_id
-      store.images = res.record.outline.pages.map((page, idx) => {
+      store.images = res.record.outline.pages.map((_page, idx) => {
         const filename = res.record!.images.generated[idx]
         return {
           index: idx,
@@ -385,6 +415,27 @@ async function handleScanAll() {
   } finally {
     isScanning.value = false
   }
+}
+
+// 导出相关函数
+const showExportModal = () => {
+  if (imagesForExport.value.length === 0) {
+    alert('没有可导出的图片')
+    return
+  }
+  exportModalVisible.value = true
+}
+
+const handleExportStart = () => {
+  console.log('开始导出...')
+}
+
+const handleExportComplete = () => {
+  console.log('导出完成')
+}
+
+const handleExportError = (error: string) => {
+  alert('导出失败: ' + error)
 }
 
 onMounted(async () => {

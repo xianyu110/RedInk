@@ -152,7 +152,7 @@ class LocalDataManager {
       const record = records[recordIndex]
       if (data.outline) record.outline = data.outline
       if (data.images) record.images = data.images
-      if (data.status) record.status = data.status
+      if (data.status) record.status = data.status as 'draft' | 'completed' | 'failed'
       if (data.thumbnail !== undefined) record.thumbnail = data.thumbnail
 
       record.updated_at = new Date().toISOString()

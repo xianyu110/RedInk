@@ -9,6 +9,10 @@
         <button class="btn" @click="startOver" style="background: white; border: 1px solid var(--border-color);">
           再来一篇
         </button>
+        <button class="btn" @click="showExportModal" style="background: white; border: 1px solid var(--border-color);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          导出文件
+        </button>
         <button class="btn btn-primary" @click="downloadAll">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           一键下载
@@ -65,6 +69,16 @@
         </div>
       </div>
     </div>
+
+    <!-- 导出模态框 -->
+    <ExportModal
+      :visible="exportModalVisible"
+      :images="imagesForExport"
+      @close="exportModalVisible = false"
+      @exportStart="handleExportStart"
+      @exportComplete="handleExportComplete"
+      @exportError="handleExportError"
+    />
   </div>
 </template>
 
@@ -85,14 +99,29 @@
 </style>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGeneratorStore } from '../stores/generator'
 import { regenerateImage } from '../api'
+import ExportModal from '../components/ExportModal.vue'
+import type { ImageData } from '../utils/exportService'
 
 const router = useRouter()
 const store = useGeneratorStore()
 const regeneratingIndex = ref<number | null>(null)
+const exportModalVisible = ref(false)
+
+// 准备导出的图片数据
+const imagesForExport = computed<ImageData[]>(() => {
+  return store.images
+    .filter(img => img.url && img.status === 'done')
+    .map(img => ({
+      url: img.url.split('?')[0] + '?thumbnail=false',
+      index: img.index,
+      title: `第 ${img.index + 1} 页`,
+      description: ''
+    }))
+})
 
 const viewImage = (url: string) => {
   const baseUrl = url.split('?')[0]
@@ -164,5 +193,27 @@ const handleRegenerate = async (image: any) => {
   } finally {
     regeneratingIndex.value = null
   }
+}
+
+// 导出相关函数
+const showExportModal = () => {
+  if (imagesForExport.value.length === 0) {
+    alert('没有可导出的图片')
+    return
+  }
+  exportModalVisible.value = true
+}
+
+const handleExportStart = () => {
+  // 可以在这里显示导出开始的提示
+  console.log('开始导出...')
+}
+
+const handleExportComplete = () => {
+  console.log('导出完成')
+}
+
+const handleExportError = (error: string) => {
+  alert('导出失败: ' + error)
 }
 </script>

@@ -129,9 +129,9 @@
       :typeOptions="textTypeOptions"
       providerCategory="text"
       @close="closeTextModal"
-      @save="saveTextProvider"
+      @save="saveTextProvider as any"
       @test="testTextConnection"
-      @update:formData="updateTextForm"
+      @update:formData="updateTextForm as any"
     />
 
     <!-- 图片服务商弹窗 -->
@@ -142,9 +142,9 @@
       :testing="testingImage"
       :typeOptions="imageTypeOptions"
       @close="closeImageModal"
-      @save="saveImageProvider"
+      @save="saveImageProvider as any"
       @test="testImageConnection"
-      @update:formData="updateImageForm"
+      @update:formData="updateImageForm as any"
     />
   </div>
 </template>

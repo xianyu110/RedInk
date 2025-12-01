@@ -52,14 +52,14 @@ export async function generateOutline(
 export async function generateImagesPost(
   pages: Page[],
   taskId: string | null,
-  fullOutline: string,
+  _fullOutline: string,
   onProgress: (event: ProgressEvent) => void,
   onComplete: (event: ProgressEvent) => void,
   onError: (event: ProgressEvent) => void,
   onFinish: (event: FinishEvent) => void,
   onStreamError: (error: Error) => void,
-  userImages?: File[],
-  userTopic?: string
+  _userImages?: File[],
+  _userTopic?: string
 ) {
   try {
     const newTaskId = taskId || generateTaskId()
@@ -96,7 +96,7 @@ export async function generateImagesPost(
           onError({ index, status: 'error', message: 'AI生成失败' })
         }
       },
-      userImages
+      _userImages
     )
 
     // 完成
@@ -116,10 +116,10 @@ export async function generateImagesPost(
 // ==================== 图片重新生成 ====================
 
 export async function regenerateImage(
-  taskId: string,
+  _taskId: string,
   page: Page,
-  useReference: boolean = true,
-  context?: {
+  _useReference: boolean = true,
+  _context?: {
     fullOutline?: string
     userTopic?: string
   }
@@ -152,7 +152,7 @@ export async function regenerateImage(
 // ==================== 批量重试失败图片 ====================
 
 export async function retryFailedImages(
-  taskId: string,
+  _taskId: string,
   pages: Page[],
   onProgress: (event: ProgressEvent) => void,
   onComplete: (event: ProgressEvent) => void,
@@ -343,7 +343,7 @@ export async function updateConfig(config: Partial<Config>): Promise<{
 }
 
 // 测试服务商连接（本地版本总是成功）
-export async function testConnection(config: {
+export async function testConnection(_config: {
   type: string
   provider_name?: string
   api_key?: string
@@ -366,7 +366,7 @@ export async function testConnection(config: {
 // ==================== 其他API ====================
 
 // 获取图片URL（从IndexedDB中获取存储的图片）
-export async function getImageUrl(taskId: string, filename: string, thumbnail: boolean = true): Promise<string | null> {
+export async function getImageUrl(_taskId: string, filename: string, _thumbnail: boolean = true): Promise<string | null> {
   // 尝试从IndexedDB获取存储的图片
   const index = parseInt(filename.split('.')[0]) || 0
   return await imageManager.getImage(index)

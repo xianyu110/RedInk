@@ -88,7 +88,7 @@ defineEmits<{
  * 获取状态文本
  */
 const statusText = computed(() => {
-  const map: Record<string, string> = {
+  const map: { [key: string]: string } = {
     draft: '草稿',
     completed: '已完成',
     generating: '生成中'
