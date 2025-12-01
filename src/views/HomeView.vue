@@ -42,6 +42,13 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
       {{ error }}
     </div>
+
+    <!-- 模板选择器 -->
+    <TemplateModal
+      :is-visible="showTemplateModal"
+      @select="selectTemplate"
+      @close="showTemplateModal = false"
+    />
   </div>
 </template>
 
@@ -54,6 +61,7 @@ import { generateOutline } from '../api'
 // 引入组件
 import ShowcaseBackground from '../components/home/ShowcaseBackground.vue'
 import ComposerInput from '../components/home/ComposerInput.vue'
+import TemplateModal from '../components/TemplateModal.vue'
 
 const router = useRouter()
 const store = useGeneratorStore()
@@ -63,6 +71,8 @@ const topic = ref('')
 const loading = ref(false)
 const error = ref('')
 const composerRef = ref<InstanceType<typeof ComposerInput> | null>(null)
+const showTemplateModal = ref(false)
+const selectedTemplate = ref<string>('')
 
 // 上传的图片文件
 const uploadedImageFiles = ref<File[]>([])
@@ -72,6 +82,67 @@ const uploadedImageFiles = ref<File[]>([])
  */
 function handleImagesChange(images: File[]) {
   uploadedImageFiles.value = images
+}
+
+/**
+ * 显示模板选择器
+ */
+function showTemplateSelector() {
+  showTemplateModal.value = true
+}
+
+/**
+ * 选择模板
+ */
+function selectTemplate(templateId: string) {
+  selectedTemplate.value = templateId
+  showTemplateModal.value = false
+
+  // 选择模板后自动开始生成
+  generateWithTemplate()
+}
+
+/**
+ * 使用选择的模板生成大纲
+ */
+async function generateWithTemplate() {
+  if (!topic.value.trim()) return
+
+  loading.value = true
+  error.value = ''
+
+  try {
+    const imageFiles = uploadedImageFiles.value
+
+    const result = await generateOutline(
+      topic.value.trim(),
+      imageFiles.length > 0 ? imageFiles : undefined,
+      selectedTemplate.value === 'custom' ? undefined : selectedTemplate.value
+    )
+
+    if (result.success && result.pages) {
+      store.setTopic(topic.value.trim())
+      store.setOutline(result.outline || '', result.pages)
+      store.recordId = null
+
+      // 保存用户上传的图片到 store
+      if (imageFiles.length > 0) {
+        store.userImages = imageFiles
+      }
+
+      // 保存状态
+      store.saveToStorage()
+
+      // 跳转到大纲编辑页面
+      router.push('/outline')
+    } else {
+      error.value = result.error || '生成失败，请重试'
+    }
+  } catch (err: any) {
+    error.value = err.message || '生成失败，请检查网络连接'
+  } finally {
+    loading.value = false
+  }
 }
 
 /**
@@ -86,9 +157,17 @@ async function handleGenerate() {
   try {
     const imageFiles = uploadedImageFiles.value
 
+    // 如果没有选择模板，显示模板选择器
+    if (!selectedTemplate.value) {
+      showTemplateSelector()
+      loading.value = false
+      return
+    }
+
     const result = await generateOutline(
       topic.value.trim(),
-      imageFiles.length > 0 ? imageFiles : undefined
+      imageFiles.length > 0 ? imageFiles : undefined,
+      selectedTemplate.value === 'custom' ? undefined : selectedTemplate.value
     )
 
     if (result.success && result.pages) {

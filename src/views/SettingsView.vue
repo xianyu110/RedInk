@@ -64,7 +64,61 @@
           @test="testImageProviderInList"
         />
       </div>
+
+      <!-- AI 服务配置 -->
+      <div class="card">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">AI 服务配置</h2>
+            <p class="section-desc">配置 Gemini API 密钥和服务地址</p>
+          </div>
+          <button class="btn btn-small btn-primary" @click="showAIConfig = true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="m12 1-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+            </svg>
+            配置AI
+          </button>
+        </div>
+
+        <div class="ai-status">
+          <div class="status-item">
+            <span class="status-label">AI 文本生成:</span>
+            <span class="status-value" :class="{ active: isAIConfigured }">
+              {{ isAIConfigured ? '✅ 已配置' : '❌ 未配置' }}
+            </span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">AI 图片生成:</span>
+            <span class="status-value" :class="{ active: isAIConfigured }">
+              {{ isAIConfigured ? '✅ 已配置' : '❌ 未配置' }}
+            </span>
+          </div>
+          <div class="help-text">
+            配置 AI 服务后，可以使用 Gemini 3 Pro 模型生成高质量图片和内容
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据管理 -->
+      <div class="card">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">数据管理</h2>
+            <p class="section-desc">导入导出数据，清理存储空间</p>
+          </div>
+        </div>
+
+        <DataManager />
+      </div>
     </div>
+
+    <!-- AI配置弹窗 -->
+    <AIConfigModal
+      :is-visible="showAIConfig"
+      @close="showAIConfig = false"
+      @save="onAIConfigSaved"
+    />
 
     <!-- 文本服务商弹窗 -->
     <ProviderModal
@@ -96,10 +150,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import ProviderTable from '../components/settings/ProviderTable.vue'
 import ProviderModal from '../components/settings/ProviderModal.vue'
 import ImageProviderModal from '../components/settings/ImageProviderModal.vue'
+import DataManager from '../components/DataManager.vue'
+import AIConfigModal from '../components/AIConfigModal.vue'
+import { imageManager } from '../utils/imageManager'
 import {
   useProviderForm,
   textTypeOptions,
@@ -112,8 +169,13 @@ import {
  * 功能：
  * - 管理文本生成服务商配置
  * - 管理图片生成服务商配置
+ * - 配置 AI 服务
  * - 测试 API 连接
  */
+
+// AI配置状态
+const showAIConfig = ref(false)
+const isAIConfigured = computed(() => imageManager.isAIConfigured())
 
 // 使用 composable 管理表单状态和逻辑
 const {
@@ -162,6 +224,16 @@ const {
   updateImageForm
 } = useProviderForm()
 
+/**
+ * AI配置保存后的处理
+ */
+function onAIConfigSaved() {
+  // 重新加载配置
+  loadConfig()
+  // 关闭弹窗
+  showAIConfig.value = false
+}
+
 onMounted(() => {
   loadConfig()
 })
@@ -181,9 +253,9 @@ onMounted(() => {
 }
 
 .section-title {
+  margin: 0 0 4px 0;
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 4px;
   color: #1a1a1a;
 }
 
@@ -191,6 +263,56 @@ onMounted(() => {
   font-size: 14px;
   color: #666;
   margin: 0;
+}
+
+/* AI状态样式 */
+.ai-status {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.status-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.status-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #dc2626;
+}
+
+.status-value.active {
+  color: #16a34a;
+}
+
+.help-text {
+  margin-top: 8px;
+  padding: 12px;
+  background-color: var(--hover-bg);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
 }
 
 /* 按钮样式 */

@@ -1,0 +1,22 @@
+active_provider: gemini
+providers:
+  gemini:
+    api_key: sk-R8bKFp9b0RD1UXUotsYDwyyGNKpOpMV9NCRx917UXMnyFy5h
+    base_url: https://api.nextaicore.com/
+    model: gemini-3-pro-preview
+    type: google_gemini
+  openai:
+    api_key: sk-xxxxxxxxxxxxxxxxxxxx
+    base_url: https://api.openai.com/v1
+    model: gpt-4o
+    type: openai_compatible
+  qwen:
+    api_key: sk-xxxxxxxxxxxxxxxxxxxx
+    base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+    model: qwen-max
+    type: openai_compatible
+  third_party:
+    api_key: sk-xxxxxxxxxxxxxxxxxxxx
+    base_url: https://your-api-endpoint.com
+    model: gpt-4o
+    type: openai_compatible

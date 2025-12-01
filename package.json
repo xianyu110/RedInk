@@ -1,12 +1,13 @@
 {
-  "name": "xiaohongshu-generator-frontend",
-  "version": "0.1.0",
+  "name": "redink-frontend",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "vite --host",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "vercel-build": "npm run build"
   },
   "dependencies": {
     "axios": "^1.6.0",

@@ -1,330 +1,229 @@
-![](images/logo.png)
-
----
-
-[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Vue 3](https://img.shields.io/badge/vue-3.x-green.svg)](https://vuejs.org/)
-
-# 红墨 - 小红书AI图文生成器
+# RedInk - 小红书AI图文生成器
 
 > 让传播不再需要门槛，让创作从未如此简单
 
-![](images/index.gif)
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![Vue 3](https://img.shields.io/badge/vue-3.x-green.svg)](https://vuejs.org/)
+[![Vite](https://img.shields.io/badge/vite-%3E%3E5.0.0-blue.svg)](https://vitejs.dev/)
 
-<p align="center">
-  <em>红墨首页</em>
-</p>
+## ✨ 项目特色
 
-<p align="center">
-  <img src="images/showcase-grid.png" alt="使用红墨生成的各类小红书封面" width="600"/>
-</p>
+- **🎯 一句话生成**: 输入主题，AI自动生成完整的小红书图文内容
+- **🤖 AI驱动**: 完全依赖前端配置的AI服务，支持多种AI API
+- **🖼️ 智能配图**: AI根据内容自动生成高质量配图
+- **📱 小红书优化**: 专为小红书平台优化的内容风格和格式
+- **⚡ 纯前端**: 无需后端服务器，完全在浏览器中运行
+- **🔧 灵活配置**: 支持自定义AI服务和参数
+- **💾 本地存储**: 所有数据本地存储，保护隐私
 
-<p align="center">
-  <em>使用红墨生成的各类小红书封面 - AI驱动，风格统一，文字准确</em>
-</p>
+## 🚀 在线体验
 
-
-
-## 写在前面
-
-前段时间默子在 Linux.do 发了一个用 Nano banana Pro 做 PPT 的帖子,收获了 600 多个赞。很多人用🍌Nano banana Pro 去做产品宣传图、直接生成漫画等等。我就在想:**为什么不拿🍌2来做点更功利、更刺激的事情?**
-
-于是就有了这个项目。一句话一张图片生成小红书图文
-
----
-
-## ✨ 效果展示
-
-### 输入一句话,就能生成完整的小红书图文
-
-#### 提示词：秋季显白美甲（暗广一个：默子牌美甲），图片 是我的小红书主页。符合我的风格生成
-
-#### 同时我还截图了我的小红书主页，包括我的头像，签名，背景，姓名什么的
-
-![示例1](./images/example-1.png)
-
-#### 然后等待10-20秒后，就会有每一页的大纲，大家可以根据的自己的需求去调整页面顺序（不建议），自定义每一个页面的内容（这个很建议）
-
-![示例2](./images/example-2.png)
-
-#### 首先生成的是封面页
-
-![示例3](./images/example-3.png)
-
-#### 然后稍等一会儿后，会生成后面的所有页面（这里是并发生成的所有页面（默认是15个），如果大家的API供应商无法支持高并发的话，记得要去改一下设置）
-
-![示例4](./images/example-4.png)
-
----
+**Vercel 部署地址**: [https://redink-ai.vercel.app](https://redink-ai.vercel.app)
 
 ## 🏗️ 技术架构
 
-### 后端
-- **语言**: Python 3.11+
-- **框架**: Flask
-- **AI 模型**:
-  - Gemini 3 (文案生成)
-  - 🍌Nano banana Pro (图片生成)
-- **包管理**: uv
-
-### 前端
+### 前端技术栈
 - **框架**: Vue 3 + TypeScript
 - **构建**: Vite
 - **状态管理**: Pinia
+- **路由**: Vue Router
+- **部署**: Vercel
 
----
+### AI服务支持
+- Gemini API
+- OpenAI 兼容接口
+- 其他支持Gemini格式的AI服务
 
-## 📦 如何自己部署
+## 📦 本地开发
 
-### 方式一：Docker 部署（推荐）
-
-**最简单的部署方式，一行命令即可启动：**
-
-```bash
-docker run -d -p 12398:12398 -v ./history:/app/history -v ./output:/app/output histonemax/redink:latest
-```
-
-访问 http://localhost:12398，在 Web 界面的**设置页面**配置你的 API Key 即可使用。
-
-**使用 docker-compose（可选）：**
-
-下载 [docker-compose.yml](https://github.com/HisMax/RedInk/blob/main/docker-compose.yml) 后：
-
-```bash
-docker-compose up -d
-```
-
-**Docker 部署说明：**
-- 容器内不包含任何 API Key，需要在 Web 界面配置
-- 使用 `-v ./history:/app/history` 持久化历史记录
-- 使用 `-v ./output:/app/output` 持久化生成的图片
-- 可选：挂载自定义配置文件 `-v ./text_providers.yaml:/app/text_providers.yaml`
-
----
-
-### 方式二：本地开发部署
-
-**前置要求：**
-- Python 3.11+
+### 环境要求
 - Node.js 18+
-- pnpm
-- uv
+- npm 或 pnpm
 
-### 1. 克隆项目
+### 安装与运行
+
 ```bash
-git clone https://github.com/HisMax/RedInk.git
+# 克隆项目
+git clone https://github.com/your-username/RedInk.git
 cd RedInk
+
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
 ```
 
-### 2. 配置 API 服务
+访问 http://localhost:5174
 
-复制配置模板文件：
-```bash
-cp text_providers.yaml.example text_providers.yaml
-cp image_providers.yaml.example image_providers.yaml
+### 配置AI服务
+
+1. 在应用设置页面点击"AI服务配置"
+2. 填入你的API配置：
+   - **API Key**: 你的AI服务密钥
+   - **服务地址**: AI服务的API地址
+   - **模型**: 使用的模型名称
+3. 测试连接并保存
+
+#### 支持的AI服务配置
+
+**Gemini API:**
+```javascript
+{
+  "api_key": "your-gemini-api-key",
+  "base_url": "https://apipro.maynor1024.live/",
+  "model": "gemini-3-pro-image-preview",
+  "type": "google_gemini"
+}
 ```
 
-编辑配置文件，填入你的 API Key 和服务配置。也可以启动后在 Web 界面的**设置页面**进行配置。
-
-### 3. 安装后端依赖
-```bash
-uv sync
+**OpenAI 兼容接口:**
+```javascript
+{
+  "api_key": "your-openai-api-key",
+  "base_url": "https://api.openai.com/v1",
+  "model": "gpt-4-vision-preview",
+  "type": "openai_compatible"
+}
 ```
-
-### 4. 安装前端依赖
-```bash
-cd frontend
-pnpm install
-```
-
-### 5. 启动服务
-
-**启动后端:**
-```bash
-uv run python -m backend.app
-```
-访问: http://localhost:12398
-
-**启动前端:**
-```bash
-cd frontend
-pnpm dev
-```
-访问: http://localhost:5173
-
----
 
 ## 🎮 使用指南
 
-### 基础使用
-1. **输入主题**: 在首页输入想要创作的主题,如"如何在家做拿铁"
-2. **生成大纲**: AI 自动生成 6-9 页的内容大纲
-3. **编辑确认**: 可以编辑和调整每一页的描述
-4. **生成图片**: 点击生成,实时查看进度
-5. **下载使用**: 一键下载所有图片
+### 基础使用流程
+1. **输入主题**: 在首页输入想要创作的主题
+2. **选择模板**: 选择适合的内容模板（可选）
+3. **生成大纲**: AI自动生成6-9页的内容大纲
+4. **编辑调整**: 可以编辑每一页的具体内容
+5. **生成图片**: 点击生成，AI自动为每页生成配图
+6. **下载使用**: 下载生成的所有图片
 
-### 进阶使用
-- **上传参考图片**: 适合品牌方,保持品牌视觉风格
-- **修改描述词**: 精确控制每一页的内容和构图
-- **重新生成**: 对不满意的页面单独重新生成
+### 高级功能
+- **上传参考图片**: 可以上传参考图片指导AI生成
+- **单独重新生成**: 对不满意的图片可以单独重新生成
+- **历史记录**: 自动保存创作历史，方便���看和管理
+- **导出功能**: 支持导出数据和配置
 
----
+## ⚙️ 配置说明
 
-## 🔧 配置说明
+### 环境变量配置
 
-### 配置方式
+创建 `.env.local` 文件：
 
-项目支持两种配置方式：
+```bash
+# 使用前端API模式（纯前端，依赖AI服务）
+VITE_USE_LOCAL_API=true
 
-1. **Web 界面配置（推荐）**：启动服务后，在设置页面可视化配置
-2. **YAML 文件配置**：直接编辑配置文件
-
-### 文本生成配置
-
-配置文件: `text_providers.yaml`
-
-```yaml
-# 当前激活的服务商
-active_provider: openai
-
-providers:
-  # OpenAI 官方或兼容接口
-  openai:
-    type: openai_compatible
-    api_key: sk-xxxxxxxxxxxxxxxxxxxx
-    base_url: https://api.openai.com/v1
-    model: gpt-4o
-
-  # Google Gemini（原生接口）
-  gemini:
-    type: google_gemini
-    api_key: AIzaxxxxxxxxxxxxxxxxxxxxxxxxx
-    model: gemini-2.0-flash
+# 如果需要连接后端API（如果有后端服务）
+# VITE_USE_LOCAL_API=false
 ```
 
-### 图片生成配置
+### AI服务配置
 
-配置文件: `image_providers.yaml`
+在应用设置页面可以配置：
+- API密钥
+- 服务地址
+- 模型名称
+- 连接测试
 
-```yaml
-# 当前激活的服务商
-active_provider: gemini
+## 🌐 Vercel 部署
 
-providers:
-  # Google Gemini 图片生成
-  gemini:
-    type: google_genai
-    api_key: AIzaxxxxxxxxxxxxxxxxxxxxxxxxx
-    model: gemini-3-pro-image-preview
-    high_concurrency: false  # 高并发模式
+### 自动部署
+1. Fork本项目到你的GitHub
+2. 在Vercel中导入项目
+3. 配置环境变量（如果需要）
+4. 自动部署完成
 
-  # OpenAI 兼容接口
-  openai_image:
-    type: image_api
-    api_key: sk-xxxxxxxxxxxxxxxxxxxx
-    base_url: https://your-api-endpoint.com
-    model: dall-e-3
-    high_concurrency: false
+### 手动部署
+```bash
+# 构建项目
+npm run build
+
+# 本地预览
+npm run preview
+
+# 部署到Vercel
+vercel --prod
 ```
 
-### 高并发模式说明
+## 📁 项目结构
 
-- **关闭（默认）**：图片逐张生成，适合 GCP 300$ 试用账号或有速率限制的 API
-- **开启**：图片并行生成（最多15张同时），速度更快，但需要 API 支持高并发
+```
+RedInk/
+├── src/
+│   ├── api/                 # API服务
+│   │   ├── index.ts        # API路由控制
+│   │   └── local.ts        # 本地API实现
+│   ├── components/          # Vue组件
+│   │   ├── AIConfigModal.vue
+│   │   ├── DataManager.vue
+│   │   └── ...
+│   ├── views/              # 页面组件
+│   ├── utils/              # 工具函数
+│   │   ├── aiImageGenerator.ts
+│   │   ├── imageManager.ts
+│   │   └── localDataManager.ts
+│   └── assets/             # 静态资源
+├── public/                 # 公共文件
+├── package.json
+├── vite.config.ts
+├── vercel.json            # Vercel部署配置
+└── README.md
+```
 
-⚠️ **GCP 300$ 试用账号不建议启用高并发**，可能会触发速率限制导致生成失败。
+## 🔧 开发说明
 
----
+### 主要功能模块
+
+1. **AI图片生成器** (`utils/aiImageGenerator.ts`)
+   - 支持多种AI API
+   - 错误处理和重试机制
+   - 连接测试功能
+
+2. **图片管理器** (`utils/imageManager.ts`)
+   - 图片压缩和处理
+   - IndexedDB本地存储
+   - 用户上传图片处理
+
+3. **数据管理器** (`utils/localDataManager.ts`)
+   - 本地数据存储
+   - 历史记录管理
+   - 配置管理
+
+4. **API服务** (`api/`)
+   - 统一的API接口
+   - 错误处理
+   - 进度回调
+
+### 添加新的AI服务支持
+
+1. 在 `aiImageGenerator.ts` 中添加新的API格式支持
+2. 在 `parseImageResponse` 方法中添加响应解析逻辑
+3. 在配置界面添加新服务的配置选项
 
 ## ⚠️ 注意事项
 
-1. **API 配额限制**:
-   - 注意 Gemini 和图片生成 API 的调用配额
-   - GCP 试用账号建议关闭高并发模式
+1. **API限制**: 请注意你的AI服务的调用配额和限制
+2. **网络依赖**: 需要稳定的网络连接到AI服务
+3. **浏览器兼容性**: 需要现代浏览器支持（支持ES2020+）
+4. **数据安全**: API密钥会存储在浏览器本地，请注意安全
 
-2. **生成时间**:
-   - 图片生成需要时间,请耐心等待（不要离开页面）
+## 🤝 贡献指南
 
----
+欢迎提交Issue和Pull Request！
 
-## 🤝 参与贡献
+### 开发流程
+1. Fork项目
+2. 创建功能分支
+3. 提交更改
+4. 创建Pull Request
 
-欢迎提交 Issue 和 Pull Request!
-
-如果这个项目对你有帮助,欢迎给个 Star ⭐
-
-### 未来计划
-- [ ] 支持更多图片格式，例如一句话生成一套PPT什么的
-- [x] 历史记录管理优化
-- [ ] 导出为各种格式(PDF、长图等)
-
----
-
-## 更新日志
-
-### v1.4.0 (2025-11-30)
-- 🏗️ 后端架构重构：拆分单体路由为模块化蓝图（history、images、generation、outline、config）
-- 🏗️ 前端组件重构：提取可复用组件（ImageGalleryModal、OutlineModal、ShowcaseBackground等）
-- ✨ 优化首页设计，移除冗余内容区块
-- ✨ 背景图片预加载和渐入动画，提升加载体验
-- ✨ 历史记录持久化支持（Docker部署）
-- 🔧 修复历史记录预览和大纲查看功能
-- 🔧 优化Modal组件可见性控制
-- 🧪 新增65个后端单元测试
-
-### v1.3.0 (2025-11-26)
-- ✨ 新增 Docker 支持，一键部署
-- ✨ 发布官方 Docker 镜像到 Docker Hub: `histonemax/redink`
-- 🔧 Flask 自动检测前端构建产物，支持单容器部署
-- 🔧 Docker 镜像内置空白配置模板，保护 API Key 安全
-- 📝 更新 README，添加 Docker 部署说明
-
-### v1.2.0 (2025-11-26)
-- ✨ 新增版权信息展示，所有页面显示开源协议和项目链接
-- ✨ 优化图片重新生成功能，支持单张图片重绘
-- ✨ 重新生成图片时保持风格一致，传递完整上下文（封面图、大纲、用户输入）
-- ✨ 修复图片缓存问题，重新生成的图片立即刷新显示
-- ✨ 统一文本生成客户端接口，支持 Google Gemini 和 OpenAI 兼容接口自动切换
-- ✨ 新增 Web 界面配置功能，可视化管理 API 服务商
-- ✨ 新增高并发模式开关，适配不同 API 配额
-- ✨ API Key 脱敏显示，保护密钥安全
-- ✨ 配置自动保存，修改即时生效
-- 🔧 调整默认 max_output_tokens 为 8000，兼容更多模型限制
-- 🔧 优化前端路由和页面布局，提升用户体验
-- 🔧 简化配置文件结构，移除冗余参数
-- 🔧 优化历史记录图片显示，使用缩略图节省带宽
-- 🔧 历史记录重新生成时自动从文件系统加载封面图作为参考
-- 🐛 修复 `store.updateImage` 方法缺失导致的重新生成失败问题
-- 🐛 修复历史记录加载时图片 URL 拼接错误
-- 🐛 修复下载功能中原图参数处理问题
-- 🐛 修复图片加载 500 错误问题
-
----
-
-## 交流讨论与赞助
-
-- **GitHub Issues**: [https://github.com/HisMax/RedInk/issues](https://github.com/HisMax/RedInk/issues)
-
-### 联系作者
-
-- **Email**: histonemax@gmail.com
-- **微信**: Histone2024（添加请注明来意）
-- **GitHub**: [@HisMax](https://github.com/HisMax)
-
-### 用爱发电，如果可以，请默子喝一杯☕️咖啡吧
-
-<img src="images/coffee.jpg" alt="赞赏码" width="300"/>
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=HisMax/RedInk&type=Date)](https://star-history.com/#HisMax/RedInk&Date)
-
----
+### 代码规范
+- 使用TypeScript
+- 遵循Vue 3组合式API规范
+- 添加适当的注释
+- 确保代码可读性
 
 ## 📄 开源协议
-
-### 个人使用 - CC BY-NC-SA 4.0
 
 本项目采用 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) 协议进行开源
 
@@ -334,55 +233,26 @@ providers:
 - ✅ **修改** - 修改、转换或以本作品为基础进行创作
 
 **但需要遵守以下条款：**
-- 📝 **署名** - 必须给出适当的署名，提供指向本协议的链接，同时标明是否对原始作品作了修改
+- 📝 **署名** - 必须给出适当的署名
 - 🚫 **非商业性使用** - 不得将本作品用于商业目的
-- 🔄 **相同方式共享** - 如果你修改、转换或以本作品为基础进行创作，你必须以相同的协议分发你的作品
+- 🔄 **相同方式共享** - 如果你修改本作品，必须以相同协议分发
 
 ### 商业授权
 
-如果你希望将本项目用于**商业目的**（包括但不限于）：
-- 提供付费服务
-- 集成到商业产品
-- 作为 SaaS 服务运营
-- 其他盈利性用途
-
-**请联系作者获取商业授权：**
-- 📧 Email: histonemax@gmail.com
-- 💬 微信: Histone2024（请注明"商业授权咨询"）
-
-默子会根据你的具体使用场景提供灵活的商业授权方案。
-
----
-
-### 免责声明
-
-本软件按"原样"提供，不提供任何形式的明示或暗示担保，包括但不限于适销性、特定用途的适用性和非侵权性的担保。在任何情况下，作者或版权持有人均不对任何索赔、损害或其他责任负责。
-
----
+如需商业使用，请联系作者获取授权。
 
 ## 🙏 致谢
 
-- [Google Gemini](https://ai.google.dev/) - 强大的文案生成能力
-- 图片生成服务提供商 - 惊艳的图片生成效果
-- [Linux.do](https://linux.do/) - 优秀的开发者社区
+- [Vue.js](https://vuejs.org/) - 优秀的前端框架
+- [Vite](https://vitejs.dev/) - 快速的构建工具
+- [Gemini AI](https://ai.google.dev/) - 强大的AI服务
+- [Vercel](https://vercel.com/) - 优秀的部署平台
+
+## 📞 联系方式
+
+- **GitHub Issues**: [提交问题](https://github.com/your-username/RedInk/issues)
+- **Email**: your-email@example.com
 
 ---
 
-## 👨‍💻 作者
-
-**默子 (Histone)** - AI 创业者 | Python & 深度学习
-
-- 🏠 位置: 中国杭州
-- 🚀 状态: 创业中
-- 💡 专注: Transformers、GANs、多模态AI
-- 📧 Email: histonemax@gmail.com
-- 💬 微信: Histone2024
-- 🐙 GitHub: [@HisMax](https://github.com/HisMax)
-
-*"让 AI 帮我们做更有创造力的事"*
-
----
-
-**如果这个项目帮到了你,欢迎分享给更多人!** ⭐
-
-有任何问题或建议,欢迎提 Issue 或者在 Linux.do 原帖讨论!
+如果这个项目对你有帮助，请给个 ⭐ Star！
