@@ -26,6 +26,11 @@
         </RouterLink>
       </nav>
 
+      <!-- 帮助引导按钮 -->
+      <div class="help-area">
+        <TutorialTrigger @start-tutorial="handleStartTutorial" />
+      </div>
+
       <!-- 用户信息区域 -->
       <div class="user-area">
         <UserMenu v-if="isAuthenticated" />
@@ -97,12 +102,19 @@ onMounted(() => {
     showLogin.value = true
   })
 
-  // 如果用户已登录，检查是否需要显示欢迎引导
-  if (isAuthenticated.value && tutorialManagerRef.value) {
-    setTimeout(() => {
-      tutorialManagerRef.value?.checkWelcomeTutorial()
-    }, 1500)
-  }
+  // 监听教程触发事件
+  window.addEventListener('start-tutorial', ((event: CustomEvent) => {
+    if (tutorialManagerRef.value && event.detail) {
+      tutorialManagerRef.value.startTutorial(event.detail)
+    }
+  }) as EventListener)
+
+  // 首次访问时显示欢迎引导（延迟1秒以确保页面加载完成）
+  setTimeout(() => {
+    if (tutorialManagerRef.value) {
+      tutorialManagerRef.value.checkWelcomeTutorial()
+    }
+  }, 1000)
 })
 
 // 监听用户登录状态变化
