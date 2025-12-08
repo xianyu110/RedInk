@@ -1,0 +1,15 @@
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#f3e5f5"/>
+  <text x="80" y="80" text-anchor="middle" fill="#7b1fa2" font-size="14" font-family="Arial, sans-serif">
+    主题输入
+  </text>
+  <text x="200" y="80" text-anchor="middle" fill="#7b1fa2" font-size="14" font-family="Arial, sans-serif">
+    大纲编辑
+  </text>
+  <text x="320" y="80" text-anchor="middle" fill="#7b1fa2" font-size="14" font-family="Arial, sans-serif">
+    图片生成
+  </text>
+  <text x="200" y="150" text-anchor="middle" fill="#7b1fa2" font-size="16" font-family="Arial, sans-serif">
+    完整创作流程
+  </text>
+</svg>
