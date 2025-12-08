@@ -161,10 +161,80 @@ export async function generateImageWithAI(
 
     // 检测是否使用 Gemini API（通过 model 名称或 baseURL 判断）
     const isGemini = apiConfig.model?.includes('gemini') || apiConfig.baseURL?.includes('generativelanguage.googleapis.com')
+    const isGeminiNative = apiConfig.baseURL?.includes('/v1beta/models/') || apiConfig.model?.includes('gemini-3-pro-image-preview')
 
-    console.log('图片生成配置:', { isGemini, model: apiConfig.model, baseURL: apiConfig.baseURL })
+    console.log('图片生成配置:', { isGemini, isGeminiNative, model: apiConfig.model, baseURL: apiConfig.baseURL })
 
-    if (isGemini) {
+    if (isGeminiNative) {
+      // Gemini 原生 API 格式
+      const apiUrl = apiConfig.baseURL.includes(':generateContent')
+        ? apiConfig.baseURL
+        : `${apiConfig.baseURL}/models/${apiConfig.model || 'gemini-3-pro-image-preview'}:generateContent`
+      
+      const response = await fetch(`${apiUrl}?key=${apiConfig.apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: optimizedPrompt
+                }
+              ]
+            }
+          ],
+          generationConfig: {
+            responseModalities: ['IMAGE'],
+            imageConfig: {
+              aspectRatio: '3:4'
+            }
+          }
+        })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Gemini Native API 错误:', errorText)
+        
+        let errorMsg = `图片生成失败: ${response.status}`
+        try {
+          const errorData = JSON.parse(errorText)
+          errorMsg = errorData.error?.message || errorMsg
+        } catch {
+          errorMsg = errorText || errorMsg
+        }
+        
+        return {
+          success: false,
+          error: errorMsg
+        }
+      }
+
+      const data = await response.json()
+      console.log('Gemini Native API 响应:', data)
+      
+      // Gemini 原生格式返回的图片在 candidates[0].content.parts[0].inlineData.data
+      const imageData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data
+      
+      if (!imageData) {
+        return {
+          success: false,
+          error: 'Gemini Native API 返回格式错误'
+        }
+      }
+
+      // 转换为 data URL
+      const mimeType = data.candidates[0].content.parts[0].inlineData.mimeType || 'image/png'
+      const imageUrl = `data:${mimeType};base64,${imageData}`
+
+      return {
+        success: true,
+        imageUrl
+      }
+    } else if (isGemini) {
       // Gemini 图片生成 API (chat 兼容格式)
       const response = await fetch(`${apiConfig.baseURL}/chat/completions`, {
         method: 'POST',

@@ -9,11 +9,29 @@
 
 ## Gemini 图片生成 API 配置
 
-### 方式一：使用 Chat 兼容格式（推荐）
+### 方式一：使用 Gemini 原生格式（推荐）
 
-如果你的代理 API 支持 OpenAI 兼容的 chat completions 格式，可以这样配置：
+使用 Gemini 原生 API 格式，支持更多配置选项：
 
 **在系统设置中配置图片生成 API：**
+
+```
+API Base URL: http://prod-cn.your-api-server.com/v1beta
+API Key: 你的 API Key
+Model: gemini-3-pro-image-preview
+```
+
+或者直接使用完整的 endpoint：
+
+```
+API Base URL: http://prod-cn.your-api-server.com/v1beta/models/gemini-3-pro-image-preview:generateContent
+API Key: 你的 API Key
+Model: gemini-3-pro-image-preview
+```
+
+### 方式二：使用 Chat 兼容格式
+
+如果你的代理 API 支持 OpenAI 兼容的 chat completions 格式：
 
 ```
 API Base URL: https://apipro.maynor1024.live/v1
@@ -21,19 +39,52 @@ API Key: 你的 API Key
 Model: gemini-2.0-flash-exp-image-generation
 ```
 
-### 方式二：使用 Gemini 原生格式
-
-如果需要使用 Gemini 原生 API 格式，需要修改代码以支持：
-
-```
-API Base URL: https://generativelanguage.googleapis.com/v1beta
-API Key: 你的 Google API Key
-Model: gemini-3-pro-image-preview
-```
-
 ## API 调用格式
 
-### Chat 兼容格式（当前支持）
+### Gemini 原生格式（已支持）
+
+```json
+POST /v1beta/models/gemini-3-pro-image-preview:generateContent?key=YOUR_API_KEY
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "text": "Create a beautiful illustration..."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "responseModalities": ["IMAGE"],
+    "imageConfig": {
+      "aspectRatio": "3:4"
+    }
+  }
+}
+```
+
+**响应格式：**
+```json
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "inlineData": {
+              "mimeType": "image/png",
+              "data": "base64编码的图片数据..."
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+### Chat 兼容格式（已支持）
 
 ```json
 POST /v1/chat/completions
@@ -59,29 +110,6 @@ POST /v1/chat/completions
       }
     }
   ]
-}
-```
-
-### Gemini 原生格式（需要额外开发）
-
-```json
-POST /v1beta/models/gemini-3-pro-image-preview:generateContent?key=YOUR_API_KEY
-{
-  "contents": [
-    {
-      "parts": [
-        {
-          "text": "Create a beautiful illustration..."
-        }
-      ]
-    }
-  ],
-  "generationConfig": {
-    "responseModalities": ["IMAGE"],
-    "imageConfig": {
-      "aspectRatio": "3:4"
-    }
-  }
 }
 ```
 
