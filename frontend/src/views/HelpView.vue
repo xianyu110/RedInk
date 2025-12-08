@@ -8,6 +8,20 @@
     </div>
 
     <div class="help-content">
+      <!-- 新用户引导横幅 -->
+      <section class="welcome-banner">
+        <div class="banner-content">
+          <div class="banner-icon">🎉</div>
+          <div class="banner-text">
+            <h3>欢迎使用 RedInk！</h3>
+            <p>第一次使用？让我们带你快速了解所有功能</p>
+          </div>
+          <button class="banner-btn" @click="startWelcomeTour">
+            开始新手引导
+          </button>
+        </div>
+      </section>
+
       <!-- 快速开始 -->
       <section class="help-section">
         <div class="section-icon">🚀</div>
@@ -228,6 +242,13 @@ const resetAllTutorials = () => {
     localConfigStore.resetTutorials()
     alert('已重置所有引导！')
   }
+}
+
+const startWelcomeTour = () => {
+  // 触发欢迎引导
+  window.dispatchEvent(new CustomEvent('start-tutorial', { detail: 'welcome' }))
+  // 跳转到首页
+  router.push('/')
 }
 </script>
 
@@ -509,5 +530,128 @@ const resetAllTutorials = () => {
   background: #f5f5f5;
   border-color: rgba(0, 0, 0, 0.15);
   color: #333;
+}
+
+/* 欢迎横幅 */
+.welcome-banner {
+  background: linear-gradient(135deg, var(--primary, #ff2442) 0%, #ff6b6b 100%);
+  border-radius: 20px;
+  padding: 40px;
+  margin-bottom: 48px;
+  box-shadow: 0 8px 32px rgba(255, 36, 66, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.welcome-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -5%;
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.banner-icon {
+  font-size: 64px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.banner-text {
+  flex: 1;
+  color: white;
+}
+
+.banner-text h3 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: white;
+}
+
+.banner-text p {
+  font-size: 16px;
+  opacity: 0.95;
+  margin: 0;
+}
+
+.banner-btn {
+  padding: 14px 32px;
+  background: white;
+  color: var(--primary, #ff2442);
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.banner-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.banner-btn:active {
+  transform: translateY(0);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .welcome-banner {
+    padding: 24px;
+  }
+
+  .banner-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .banner-icon {
+    font-size: 48px;
+  }
+
+  .banner-text h3 {
+    font-size: 22px;
+  }
+
+  .banner-text p {
+    font-size: 14px;
+  }
+
+  .banner-btn {
+    width: 100%;
+  }
 }
 </style>

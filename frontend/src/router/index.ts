@@ -34,14 +34,12 @@ const router = createRouter({
     {
       path: '/history',
       name: 'history',
-      component: HistoryView,
-      meta: { requiresAuth: true }
+      component: HistoryView
     },
     {
       path: '/history/:id',
       name: 'history-detail',
-      component: HistoryView,
-      meta: { requiresAuth: true }
+      component: HistoryView
     },
     {
       path: '/settings',
