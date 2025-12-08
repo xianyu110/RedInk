@@ -18,13 +18,15 @@
       </div>
 
       <!-- 主题输入组合框 -->
-      <ComposerInput
-        ref="composerRef"
-        v-model="topic"
-        :loading="loading"
-        @generate="handleGenerate"
-        @imagesChange="handleImagesChange"
-      />
+      <div class="composer-input">
+        <ComposerInput
+          ref="composerRef"
+          v-model="topic"
+          :loading="loading"
+          @generate="handleGenerate"
+          @imagesChange="handleImagesChange"
+        />
+      </div>
     </div>
 
     <!-- 版权信息 -->

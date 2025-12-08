@@ -1,6 +1,8 @@
+version: '3.8'
+
 services:
   redink:
-    image: histonemax/redink:latest
+    build: .
     container_name: redink
     ports:
       - "12398:12398"
@@ -8,7 +10,28 @@ services:
       # 持久化数据目录
       - ./history:/app/history
       - ./output:/app/output
-      # 可选：挂载自定义配置文件
-      # - ./text_providers.yaml:/app/text_providers.yaml
-      # - ./image_providers.yaml:/app/image_providers.yaml
+    environment:
+      # Flask 配置
+      - FLASK_DEBUG=False
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=12398
+      
+      # 可选：服务器端配置 API Key（不推荐，建议在前端配置）
+      # 文本生成配置
+      # - TEXT_PROVIDER=openai
+      # - TEXT_API_KEY=your-text-api-key
+      # - TEXT_BASE_URL=https://apipro.maynor1024.live/v1
+      # - TEXT_MODEL=gpt-4o
+      
+      # 图片生成配置
+      # - IMAGE_PROVIDER=gemini
+      # - IMAGE_API_KEY=your-image-api-key
+      # - IMAGE_BASE_URL=https://apipro.maynor1024.live/v1
+      # - IMAGE_MODEL=gemini-3-pro-image-preview
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:12398/api')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

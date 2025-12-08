@@ -9,16 +9,16 @@
         <button class="btn btn-secondary" @click="goBack" style="background: white; border: 1px solid var(--border-color);">
           上一步
         </button>
-        <button class="btn btn-primary" @click="startGeneration">
+        <button class="btn btn-primary generate-images-btn" @click="startGeneration">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line></svg>
           开始生成图片
         </button>
       </div>
     </div>
 
-    <div class="outline-grid">
-      <div 
-        v-for="(page, idx) in store.outline.pages" 
+    <div class="outline-grid outline-editor">
+      <div
+        v-for="(page, idx) in store.outline.pages"
         :key="page.index"
         class="card outline-card"
         :draggable="true"
