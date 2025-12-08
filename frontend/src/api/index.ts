@@ -6,6 +6,12 @@ const API_BASE_URL = '/api'
 // 获取请求头（包含本地配置的 API Key）
 function getHeaders(service: 'text' | 'image') {
   const localConfigStore = useLocalConfigStore()
+  
+  // 确保 store 已初始化
+  if (!localConfigStore.initialized) {
+    localConfigStore.init()
+  }
+  
   const apiConfig = localConfigStore.getApiConfig(service)
   
   const headers: Record<string, string> = {
