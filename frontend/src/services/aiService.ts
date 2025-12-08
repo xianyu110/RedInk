@@ -161,7 +161,7 @@ export async function generateImageWithAI(
 
     // 检测是否使用 Gemini API（通过 model 名称或 baseURL 判断）
     const isGemini = apiConfig.model?.includes('gemini') || apiConfig.baseURL?.includes('generativelanguage.googleapis.com')
-    const isGeminiNative = apiConfig.baseURL?.includes('/v1beta/models/') || apiConfig.model?.includes('gemini-3-pro-image-preview')
+    const isGeminiNative = apiConfig.baseURL?.includes('/v1beta') || apiConfig.model?.includes('gemini-3-pro-image-preview') || apiConfig.model?.includes('imagen')
 
     console.log('图片生成配置:', { isGemini, isGeminiNative, model: apiConfig.model, baseURL: apiConfig.baseURL })
 
