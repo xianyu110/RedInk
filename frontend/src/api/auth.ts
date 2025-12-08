@@ -1,4 +1,6 @@
-import axios from './index'
+import axios from 'axios'
+
+const API_BASE_URL = '/api'
 
 export interface User {
   id: string
@@ -30,7 +32,7 @@ export async function login(email: string): Promise<{
   error?: string
 }> {
   try {
-    const response = await axios.post('/auth/login', { email })
+    const response = await axios.post(`${API_BASE_URL}/auth/login`, { email })
     return response.data
   } catch (error: any) {
     return {
@@ -47,7 +49,7 @@ export async function getCurrentUser(token: string): Promise<{
   error?: string
 }> {
   try {
-    const response = await axios.get('/auth/me', {
+    const response = await axios.get(`${API_BASE_URL}/auth/me`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -75,7 +77,7 @@ export async function updateProfile(
   error?: string
 }> {
   try {
-    const response = await axios.post('/auth/update-profile', data, {
+    const response = await axios.post(`${API_BASE_URL}/auth/update-profile`, data, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -95,7 +97,7 @@ export async function logout(): Promise<{
   error?: string
 }> {
   try {
-    const response = await axios.post('/auth/logout')
+    const response = await axios.post(`${API_BASE_URL}/auth/logout`)
     return response.data
   } catch (error: any) {
     return {
