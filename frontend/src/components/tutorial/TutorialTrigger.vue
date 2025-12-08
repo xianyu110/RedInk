@@ -94,52 +94,78 @@ const resetTutorials = () => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #f3f4f6;
-  border: none;
+  background-color: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  color: #4a4a4a;
-  transition: all 0.2s ease;
+  color: #666;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .help-btn:hover {
-  background-color: #e5e7eb;
-  color: #2563eb;
+  background-color: rgba(255, 36, 66, 0.05);
+  border-color: rgba(255, 36, 66, 0.2);
+  color: var(--primary, #ff2442);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 36, 66, 0.15);
 }
 
 .help-btn.has-notification {
-  background-color: #eff6ff;
+  background-color: rgba(255, 36, 66, 0.05);
+  border-color: rgba(255, 36, 66, 0.2);
 }
 
 .notification-dot {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   width: 8px;
   height: 8px;
-  background-color: #ef4444;
+  background-color: var(--primary, #ff2442);
   border-radius: 50%;
   border: 2px solid white;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .help-menu {
   position: absolute;
   bottom: 100%;
   left: 0;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   width: 280px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
   z-index: 1000;
   overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .menu-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  background: linear-gradient(135deg, var(--primary, #ff2442) 0%, #ff6b6b 100%);
   color: white;
 }
 
@@ -170,43 +196,48 @@ const resetTutorials = () => {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 12px;
-  margin: 4px 0;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  padding: 14px 16px;
+  margin: 6px 0;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
   background: white;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
   font-size: 14px;
+  color: #333;
 }
 
 .tutorial-item:hover {
-  border-color: #2563eb;
-  background-color: #f8faff;
+  border-color: var(--primary, #ff2442);
+  background-color: rgba(255, 36, 66, 0.03);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(255, 36, 66, 0.08);
 }
 
 .status {
-  color: #10b981;
+  color: var(--primary, #ff2442);
   font-weight: 600;
+  font-size: 16px;
 }
 
 .reset-btn {
   width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border: 1px solid #dc2626;
-  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
   background: white;
-  color: #dc2626;
+  color: #666;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s ease;
+  font-size: 13px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .reset-btn:hover {
-  background-color: #dc2626;
-  color: white;
+  background-color: #f5f5f5;
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #333;
 }
 
 .menu-overlay {
