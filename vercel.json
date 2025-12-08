@@ -2,8 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+      "src": "api/*.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxDuration": 60
+      }
     },
     {
       "src": "frontend/package.json",
@@ -14,6 +17,18 @@
     }
   ],
   "routes": [
+    {
+      "src": "/api/outline",
+      "dest": "api/outline.py"
+    },
+    {
+      "src": "/api/generate",
+      "dest": "api/generate.py"
+    },
+    {
+      "src": "/api/config",
+      "dest": "api/config.py"
+    },
     {
       "src": "/api/(.*)",
       "dest": "api/index.py"
