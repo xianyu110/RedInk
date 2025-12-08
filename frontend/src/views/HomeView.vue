@@ -32,10 +32,10 @@
     <!-- 版权信息 -->
     <div class="page-footer">
       <div class="footer-copyright">
-        © 2025 <a href="https://github.com/HisMax/RedInk" target="_blank" rel="noopener noreferrer">RedInk</a> by 默子 (Histone)
+        © 2025 <a href="https://github.com/HisMax/RedInk" target="_blank" rel="noopener noreferrer">RedInk</a> by MaynorAI (Histone)
       </div>
-      <div class="footer-license">
-        Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>
+      <div class="footer-navigation">
+        永久导航: <a href="https://link3.cc/maynorai" target="_blank" rel="noopener noreferrer">link3.cc/maynorai</a>
       </div>
     </div>
 
