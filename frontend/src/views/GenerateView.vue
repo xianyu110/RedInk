@@ -99,7 +99,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGeneratorStore } from '../stores/generator'
-import { generateImagesPost, regenerateImage as apiRegenerateImage, retryFailedImages as apiRetryFailed, createHistory, updateHistory, getImageUrl } from '../api'
+import { generateImagesForPages, generateImageWithAI } from '../services/aiService'
+import { createHistory, updateHistory } from '../services/historyService'
 
 const router = useRouter()
 const store = useGeneratorStore()
@@ -219,7 +220,7 @@ onMounted(async () => {
   // 创建历史记录（如果还没有）
   if (!store.recordId) {
     try {
-      const result = await createHistory(store.topic, {
+      const result = createHistory(store.topic, {
         raw: store.outline.raw,
         pages: store.outline.pages
       })
@@ -234,7 +235,8 @@ onMounted(async () => {
 
   store.startGeneration()
 
-  generateImagesPost(
+  // 使用新的图片生成服务
+  await generateImagesForPages(
     store.outline.pages,
     null,
     store.outline.raw,  // 传入完整大纲文本
