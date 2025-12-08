@@ -135,6 +135,7 @@ function parseOutline(outlineText: string): Page[] {
  */
 export async function generateImageWithAI(
   prompt: string,
+  pageContent?: string,
   onProgress?: (progress: number) => void
 ): Promise<{
   success: boolean
@@ -152,6 +153,11 @@ export async function generateImageWithAI(
       }
     }
 
+    // 优化提示词
+    const optimizedPrompt = pageContent 
+      ? `Create a beautiful, professional illustration for social media post. Content: ${pageContent.substring(0, 300)}. Style: modern, clean, eye-catching, suitable for Xiaohongshu (Little Red Book) platform.`
+      : prompt
+
     // 调用图片生成 API
     const response = await fetch(`${apiConfig.baseURL}/images/generations`, {
       method: 'POST',
@@ -161,18 +167,28 @@ export async function generateImageWithAI(
       },
       body: JSON.stringify({
         model: apiConfig.model || 'dall-e-3',
-        prompt: prompt,
+        prompt: optimizedPrompt,
         n: 1,
         size: '1024x1024',
-        quality: 'standard'
+        quality: 'standard',
+        style: 'vivid'
       })
     })
 
     if (!response.ok) {
-      const error = await response.text()
+      const errorText = await response.text()
+      let errorMsg = `图片生成失败: ${response.status}`
+      
+      try {
+        const errorData = JSON.parse(errorText)
+        errorMsg = errorData.error?.message || errorMsg
+      } catch {
+        errorMsg = errorText || errorMsg
+      }
+      
       return {
         success: false,
-        error: `图片生成失败: ${response.status} ${error}`
+        error: errorMsg
       }
     }
 
@@ -203,10 +219,8 @@ export async function generateImagesForPages(
     
     onProgress(i, 'generating')
 
-    // 构建图片提示词
-    const imagePrompt = `Create an illustration for: ${page.content.substring(0, 200)}`
-
-    const result = await generateImageWithAI(imagePrompt)
+    // 使用页面内容生成图片
+    const result = await generateImageWithAI('', page.content)
 
     if (result.success && result.imageUrl) {
       onProgress(i, 'done', result.imageUrl)
@@ -214,9 +228,23 @@ export async function generateImagesForPages(
       onProgress(i, 'error', undefined, result.error)
     }
 
-    // 添加延迟避免 API 限流
+    // 添加延迟避免 API 限流（DALL-E 3 有速率限制）
     if (i < pages.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 2000))
     }
   }
+}
+
+/**
+ * 重新生成单张图片
+ */
+export async function regenerateSingleImage(
+  page: Page,
+  onProgress?: (progress: number) => void
+): Promise<{
+  success: boolean
+  imageUrl?: string
+  error?: string
+}> {
+  return await generateImageWithAI('', page.content, onProgress)
 }

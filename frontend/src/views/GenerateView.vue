@@ -130,33 +130,35 @@ const getStatusText = (status: string) => {
 }
 
 // 重试单张图片（异步并发执行，不阻塞）
-function retrySingleImage(index: number) {
-  if (!store.taskId) return
-
+async function retrySingleImage(index: number) {
   const page = store.outline.pages.find(p => p.index === index)
   if (!page) return
 
   // 立即设置为重试状态
   store.setImageRetrying(index)
 
-  // 构建上下文信息
-  const context = {
-    fullOutline: store.outline.raw || '',
-    userTopic: store.topic || ''
-  }
+  // 使用新的 AI 服务重新生成
+  const result = await generateImageWithAI('', page.content)
 
-  // 异步执行重绘，不阻塞
-  apiRegenerateImage(store.taskId, page, true, context)
-    .then(result => {
-      if (result.success && result.image_url) {
-        store.updateImage(index, result.image_url)
-      } else {
-        store.updateProgress(index, 'error', undefined, result.error)
-      }
-    })
-    .catch(e => {
-      store.updateProgress(index, 'error', undefined, String(e))
-    })
+  if (result.success && result.imageUrl) {
+    store.updateImage(index, result.imageUrl)
+    
+    // 更新历史记录
+    if (store.recordId) {
+      const generatedImages = store.images
+        .filter(img => img.status === 'done' && img.url)
+        .map(img => img.url)
+      
+      updateHistory(store.recordId, {
+        images: {
+          task_id: store.taskId,
+          generated: generatedImages
+        }
+      })
+    }
+  } else {
+    store.updateProgress(index, 'error', undefined, result.error)
+  }
 }
 
 // 重新生成图片（成功的也可以重新生成，立即返回不等待）
