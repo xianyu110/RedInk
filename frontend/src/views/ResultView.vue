@@ -4,6 +4,9 @@
       <div>
         <h1 class="page-title">创作完成</h1>
         <p class="page-subtitle">恭喜！你的小红书图文已生成完毕，共 {{ store.images.length }} 张</p>
+        <p style="color: #ff9800; font-size: 13px; margin-top: 8px;">
+          ⚠️ 提示：图片不会保存到历史记录，请及时下载保存
+        </p>
       </div>
       <div style="display: flex; gap: 12px;">
         <button class="btn" @click="startOver" style="background: white; border: 1px solid var(--border-color);">

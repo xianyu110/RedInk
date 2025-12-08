@@ -14,10 +14,10 @@ export interface HistoryRecord {
   }
   images: {
     task_id: string | null
-    generated: string[]
+    generated: string[]  // ⚠️ 注意：不要存储 base64 图片，只存储 URL 引用或留空
   }
   status: string
-  thumbnail: string | null
+  thumbnail: string | null  // ⚠️ 注意：不要存储 base64 图片
   page_count?: number  // 页面数量（用于显示）
 }
 
@@ -41,16 +41,46 @@ export function getAllHistory(): HistoryRecord[] {
  */
 function saveHistory(records: HistoryRecord[]): void {
   try {
-    const jsonString = JSON.stringify(records)
+    // 清理记录，移除可能的 base64 图片数据
+    const cleanedRecords = records.map(record => {
+      const cleaned = { ...record }
+      
+      // 不保存图片数据（太大）
+      cleaned.images = {
+        task_id: record.images.task_id,
+        generated: []  // 清空图片数组，避免存储 base64
+      }
+      cleaned.thumbnail = null  // 不保存缩略图
+      
+      return cleaned
+    })
+    
+    const jsonString = JSON.stringify(cleanedRecords)
+    const sizeKB = (jsonString.length / 1024).toFixed(2)
+    
+    // 检查大小，如果超过 4MB 则警告
+    if (jsonString.length > 4 * 1024 * 1024) {
+      console.warn(`⚠️ 历史记录过大: ${sizeKB} KB，建议清理旧记录`)
+    }
+    
     localStorage.setItem(HISTORY_KEY, jsonString)
-    console.log(`✅ 历史记录已保存: ${records.length} 条记录, 大小: ${(jsonString.length / 1024).toFixed(2)} KB`)
+    console.log(`✅ 历史记录已保存: ${cleanedRecords.length} 条记录, 大小: ${sizeKB} KB`)
   } catch (error: any) {
     console.error('❌ 保存历史记录失败:', error)
     
     // 检查是否是 localStorage 配额超限
     if (error.name === 'QuotaExceededError') {
-      console.error('localStorage 存储空间已满！请清理旧记录。')
-      alert('存储空间已满，无法保存历史记录。请删除一些旧记录后重试。')
+      console.error('localStorage 存储空间已满！')
+      
+      // 尝试清理旧记录
+      const records = getAllHistory()
+      if (records.length > 10) {
+        const kept = records.slice(0, 10)  // 只保留最新的 10 条
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(kept))
+        alert(`存储空间已满，已自动清理旧记录。保留最新 ${kept.length} 条记录。`)
+      } else {
+        alert('存储空间已满，无法保存历史记录。请手动清理旧记录。')
+      }
     }
   }
 }

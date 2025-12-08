@@ -143,17 +143,10 @@ async function retrySingleImage(index: number) {
   if (result.success && result.imageUrl) {
     store.updateImage(index, result.imageUrl)
     
-    // 更新历史记录
+    // 更新历史记录状态（不保存图片，避免 localStorage 超限）
     if (store.recordId) {
-      const generatedImages = store.images
-        .filter(img => img.status === 'done' && img.url)
-        .map(img => img.url)
-      
       updateHistory(store.recordId, {
-        images: {
-          task_id: store.taskId,
-          generated: generatedImages
-        }
+        status: 'partial'
       })
     }
   } else {
@@ -195,17 +188,11 @@ async function retryAllFailed() {
       }
     }
 
-    // 更新历史记录
+    // 更新历史记录状态（不保存图片，避免 localStorage 超限）
     if (store.recordId) {
-      const generatedImages = store.images
-        .filter(img => img.status === 'done' && img.url)
-        .map(img => img.url)
-      
+      const hasSuccess = store.images.some(img => img.status === 'done')
       updateHistory(store.recordId, {
-        images: {
-          task_id: store.taskId,
-          generated: generatedImages
-        }
+        status: hasSuccess ? 'partial' : 'draft'
       })
     }
   } catch (e) {
@@ -282,23 +269,12 @@ onMounted(async () => {
         status = generatedImages.length > 0 ? 'partial' : 'draft'
       }
 
-      // 获取封面图作为缩略图
-      const thumbnail = generatedImages.length > 0 ? generatedImages[0] : undefined
-
-      const updateData: any = {
-        images: {
-          task_id: taskId,
-          generated: generatedImages
-        },
+      // 只更新状态，不保存图片（避免 localStorage 超限）
+      updateHistory(store.recordId, {
         status: status
-      }
-      
-      if (thumbnail) {
-        updateData.thumbnail = thumbnail
-      }
-
-      updateHistory(store.recordId, updateData)
-      console.log('历史记录已更新')
+      })
+      console.log('✅ 历史记录状态已更新:', status)
+      console.log('⚠️ 图片未保存到历史记录（localStorage 限制），请及时下载图片')
     } catch (e) {
       console.error('更新历史记录失败:', e)
     }
