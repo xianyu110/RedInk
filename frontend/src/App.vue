@@ -43,9 +43,6 @@
         <!-- 全局页脚版权信息（首页除外） -->
         <footer v-if="route.path !== '/'" class="global-footer">
           <div class="footer-content">
-            <div class="footer-text">
-              © 2025 <a href="https://github.com/HisMax/RedInk" target="_blank" rel="noopener noreferrer">RedInk</a> by MaynorAI (Histone)
-            </div>
             <div class="footer-navigation">
               永久导航: <a href="https://link3.cc/maynorai" target="_blank" rel="noopener noreferrer">link3.cc/maynorai</a>
             </div>
