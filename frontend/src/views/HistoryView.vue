@@ -166,13 +166,20 @@ function loadData() {
   loading.value = true
   try {
     let statusFilter = currentTab.value === 'all' ? undefined : currentTab.value
+    console.log('📋 加载历史记录列表, 页码:', currentPage.value, '状态:', statusFilter)
+    
     const res = getHistoryList(currentPage.value, 12, statusFilter)
+    console.log('📋 历史记录列表结果:', res)
+    
     if (res.success) {
       records.value = res.records
       totalPages.value = res.total_pages
+      console.log('✅ 加载成功:', res.records.length, '条记录')
+    } else {
+      console.error('❌ 加载失败')
     }
   } catch(e) {
-    console.error(e)
+    console.error('❌ 加载异常:', e)
   } finally {
     loading.value = false
   }
@@ -184,8 +191,11 @@ function loadData() {
 function loadStats() {
   try {
     const res = getHistoryStats()
+    console.log('📊 统计数据:', res)
     if (res.success) stats.value = res
-  } catch(e) {}
+  } catch(e) {
+    console.error('❌ 加载统计失败:', e)
+  }
 }
 
 /**

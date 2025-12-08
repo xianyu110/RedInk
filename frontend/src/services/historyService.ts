@@ -18,6 +18,7 @@ export interface HistoryRecord {
   }
   status: string
   thumbnail: string | null
+  page_count?: number  // 页面数量（用于显示）
 }
 
 const HISTORY_KEY = 'redink-history'
@@ -225,16 +226,23 @@ export function searchHistory(keyword: string): {
   records: HistoryRecord[]
 } {
   try {
-    const records = getAllHistory()
+    let records = getAllHistory()
     const filtered = records.filter(r =>
       r.title.toLowerCase().includes(keyword.toLowerCase())
     )
 
+    // 添加 page_count 字段
+    const result = filtered.map(r => ({
+      ...r,
+      page_count: r.outline?.pages?.length || 0
+    }))
+
     return {
       success: true,
-      records: filtered
+      records: result
     }
   } catch (error) {
+    console.error('搜索历史记录失败:', error)
     return {
       success: true,
       records: []
@@ -295,6 +303,12 @@ export function getHistoryList(
       records = records.filter(r => r.status === status)
     }
 
+    // 添加 page_count 字段（用于显示）
+    records = records.map(r => ({
+      ...r,
+      page_count: r.outline?.pages?.length || 0
+    }))
+
     const total = records.length
     const total_pages = Math.ceil(total / pageSize)
     const start = (page - 1) * pageSize
@@ -310,6 +324,7 @@ export function getHistoryList(
       total_pages
     }
   } catch (error) {
+    console.error('获取历史记录列表失败:', error)
     return {
       success: true,
       records: [],

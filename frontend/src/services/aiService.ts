@@ -57,13 +57,7 @@ export async function generateOutlineWithAI(topic: string, images?: File[]): Pro
     }
 
     // 调用 OpenAI 兼容 API
-    const apiUrl = apiConfig.baseURL.endsWith('/v1')
-      ? `${apiConfig.baseURL}/chat/completions`
-      : `${apiConfig.baseURL}/v1/chat/completions`
-    
-    console.log('调用文本生成 API:', apiUrl)
-    
-    const response = await fetch(apiUrl, {
+    const response = await fetch(`${apiConfig.baseURL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -138,6 +132,7 @@ function parseOutline(outlineText: string): Page[] {
 
 /**
  * 直接调用图片生成 API
+ * 支持 OpenAI DALL-E 和 Gemini 图片生成
  */
 export async function generateImageWithAI(
   prompt: string,
@@ -164,68 +159,129 @@ export async function generateImageWithAI(
       ? `Create a beautiful, professional illustration for social media post. Content: ${pageContent.substring(0, 300)}. Style: modern, clean, eye-catching, suitable for Xiaohongshu (Little Red Book) platform.`
       : prompt
 
-    // 调用图片生成 API
-    const apiUrl = apiConfig.baseURL.endsWith('/v1') 
-      ? `${apiConfig.baseURL}/images/generations`
-      : `${apiConfig.baseURL}/v1/images/generations`
-    
-    console.log('调用图片生成 API:', apiUrl)
-    console.log('提示词:', optimizedPrompt)
-    
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiConfig.apiKey}`
-      },
-      body: JSON.stringify({
-        model: apiConfig.model || 'dall-e-3',
-        prompt: optimizedPrompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'standard',
-        style: 'vivid'
+    // 检测是否使用 Gemini API（通过 model 名称或 baseURL 判断）
+    const isGemini = apiConfig.model?.includes('gemini') || apiConfig.baseURL?.includes('generativelanguage.googleapis.com')
+
+    console.log('图片生成配置:', { isGemini, model: apiConfig.model, baseURL: apiConfig.baseURL })
+
+    if (isGemini) {
+      // Gemini 图片生成 API (chat 兼容格式)
+      const response = await fetch(`${apiConfig.baseURL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiConfig.apiKey}`
+        },
+        body: JSON.stringify({
+          model: apiConfig.model || 'gemini-2.0-flash-exp-image-generation',
+          messages: [
+            {
+              role: 'user',
+              content: optimizedPrompt
+            }
+          ],
+          max_tokens: 4096
+        })
       })
-    })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      let errorMsg = `图片生成失败: ${response.status}`
-      
-      try {
-        const errorData = JSON.parse(errorText)
-        errorMsg = errorData.error?.message || errorMsg
-        console.error('API 错误响应:', errorData)
-      } catch {
-        errorMsg = errorText || errorMsg
-        console.error('API 错误文本:', errorText)
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Gemini API 错误:', errorText)
+        
+        let errorMsg = `图片生成失败: ${response.status}`
+        try {
+          const errorData = JSON.parse(errorText)
+          errorMsg = errorData.error?.message || errorMsg
+        } catch {
+          errorMsg = errorText || errorMsg
+        }
+        
+        return {
+          success: false,
+          error: errorMsg
+        }
       }
+
+      const data = await response.json()
+      console.log('Gemini API 响应:', data)
       
+      // Gemini 返回的图片在 choices[0].message.content 中，可能是 base64 或 URL
+      const content = data.choices?.[0]?.message?.content
+      
+      if (!content) {
+        return {
+          success: false,
+          error: 'Gemini API 返回格式错误'
+        }
+      }
+
+      let imageUrl: string
+      // 如果是 base64，转换为 data URL
+      if (content.startsWith('data:image')) {
+        imageUrl = content
+      } else if (content.startsWith('http')) {
+        imageUrl = content
+      } else {
+        // 假设是 base64 编码
+        imageUrl = `data:image/png;base64,${content}`
+      }
+
       return {
-        success: false,
-        error: errorMsg
+        success: true,
+        imageUrl
       }
-    }
+    } else {
+      // OpenAI DALL-E API
+      const apiUrl = apiConfig.baseURL.endsWith('/v1') 
+        ? `${apiConfig.baseURL}/images/generations`
+        : `${apiConfig.baseURL}/v1/images/generations`
+      
+      console.log('调用 DALL-E API:', apiUrl)
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiConfig.apiKey}`
+        },
+        body: JSON.stringify({
+          model: apiConfig.model || 'dall-e-3',
+          prompt: optimizedPrompt,
+          n: 1,
+          size: '1024x1024',
+          quality: 'standard',
+          style: 'vivid'
+        })
+      })
 
-    const data = await response.json()
-    console.log('图片生成成功:', data)
-    const imageUrl = data.data[0].url
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('DALL-E API 错误:', errorText)
+        
+        let errorMsg = `图片生成失败: ${response.status}`
+        try {
+          const errorData = JSON.parse(errorText)
+          errorMsg = errorData.error?.message || errorMsg
+        } catch {
+          errorMsg = errorText || errorMsg
+        }
+        
+        return {
+          success: false,
+          error: errorMsg
+        }
+      }
 
-    return {
-      success: true,
-      imageUrl
+      const data = await response.json()
+      const imageUrl = data.data[0].url
+
+      return {
+        success: true,
+        imageUrl
+      }
     }
   } catch (error: any) {
     console.error('图片生成异常:', error)
-    
-    // 检查是否是网络错误
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      return {
-        success: false,
-        error: '网络连接失败，请检查：1) API 地址是否正确 2) 是否存在 CORS 跨域问题 3) 网络连接是否正常'
-      }
-    }
-    
     return {
       success: false,
       error: error.message || '图片生成失败'
@@ -254,7 +310,7 @@ export async function generateImagesForPages(
       onProgress(i, 'error', undefined, result.error)
     }
 
-    // 添加延迟避免 API 限流（DALL-E 3 有速率限制）
+    // 添加延迟避免 API 限流
     if (i < pages.length - 1) {
       await new Promise(resolve => setTimeout(resolve, 2000))
     }
