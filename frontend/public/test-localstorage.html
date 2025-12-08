@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalStorage 测试</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 4px;
+      background: #ff2442;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    button.secondary {
+      background: #666;
+    }
+    pre {
+      background: #f8f8f8;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    .success {
+      color: #52c41a;
+      font-weight: bold;
+    }
+    .error {
+      color: #ff4d4f;
+      font-weight: bold;
+    }
+    .info {
+      color: #1890ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 LocalStorage 功能测试</h1>
+  
+  <div class="card">
+    <h2>1. 基础测试</h2>
+    <button onclick="testBasic()">测试基础读写</button>
+    <button onclick="testQuota()" class="secondary">测试存储容量</button>
+    <div id="basic-result"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. 历史记录测试</h2>
+    <button onclick="createTestRecord()">创建测试记录</button>
+    <button onclick="updateTestRecord()">更新测试记录</button>
+    <button onclick="viewRecords()">查看所有记录</button>
+    <button onclick="clearRecords()" class="secondary">清空记录</button>
+    <div id="history-result"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. 当前存储状态</h2>
+    <button onclick="checkStorage()">检查存储</button>
+    <div id="storage-info"></div>
+  </div>
+
+  <script>
+    const HISTORY_KEY = 'redink-history';
+
+    function log(elementId, message, type = 'info') {
+      const el = document.getElementById(elementId);
+      const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+      el.innerHTML += `<p class="${className}">${message}</p>`;
+    }
+
+    function testBasic() {
+      const result = document.getElementById('basic-result');
+      result.innerHTML = '';
+      
+      try {
+        // 测试写入
+        localStorage.setItem('test-key', 'test-value');
+        log('basic-result', '✅ 写入测试成功', 'success');
+        
+        // 测试读取
+        const value = localStorage.getItem('test-key');
+        if (value === 'test-value') {
+          log('basic-result', '✅ 读取测试成功', 'success');
+        } else {
+          log('basic-result', '❌ 读取测试失败', 'error');
+        }
+        
+        // 测试删除
+        localStorage.removeItem('test-key');
+        log('basic-result', '✅ 删除测试成功', 'success');
+        
+        log('basic-result', '<strong>✅ LocalStorage 功能正常</strong>', 'success');
+      } catch (e) {
+        log('basic-result', `❌ 测试失败: ${e.message}`, 'error');
+      }
+    }
+
+    function testQuota() {
+      const result = document.getElementById('basic-result');
+      result.innerHTML = '';
+      
+      try {
+        let size = 0;
+        const testData = 'x'.repeat(1024); // 1KB
+        
+        for (let i = 0; i < 10000; i++) {
+          try {
+            localStorage.setItem(`quota-test-${i}`, testData);
+            size += testData.length;
+          } catch (e) {
+            log('basic-result', `⚠️ 存储上限: 约 ${(size / 1024 / 1024).toFixed(2)} MB`, 'info');
+            break;
+          }
+        }
+        
+        // 清理测试数据
+        for (let i = 0; i < 10000; i++) {
+          localStorage.removeItem(`quota-test-${i}`);
+        }
+        
+        log('basic-result', '✅ 容量测试完成', 'success');
+      } catch (e) {
+        log('basic-result', `❌ 测试失败: ${e.message}`, 'error');
+      }
+    }
+
+    function createTestRecord() {
+      const result = document.getElementById('history-result');
+      result.innerHTML = '';
+      
+      try {
+        const records = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        
+        const newRecord = {
+          id: Date.now().toString(),
+          title: '测试记录 ' + new Date().toLocaleTimeString(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          outline: {
+            raw: '测试大纲内容',
+            pages: [
+              { index: 0, type: 'cover', content: '封面内容' },
+              { index: 1, type: 'content', content: '内容页1' }
+            ]
+          },
+          images: {
+            task_id: 'task_' + Date.now(),
+            generated: []
+          },
+          status: 'draft',
+          thumbnail: null
+        };
+        
+        records.unshift(newRecord);
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(records));
+        
+        log('history-result', `✅ 创建记录成功: ${newRecord.id}`, 'success');
+        log('history-result', `<pre>${JSON.stringify(newRecord, null, 2)}</pre>`);
+      } catch (e) {
+        log('history-result', `❌ 创建失败: ${e.message}`, 'error');
+      }
+    }
+
+    function updateTestRecord() {
+      const result = document.getElementById('history-result');
+      result.innerHTML = '';
+      
+      try {
+        const records = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        
+        if (records.length === 0) {
+          log('history-result', '⚠️ 没有记录可更新，请先创建记录', 'error');
+          return;
+        }
+        
+        // 更新第一条记录
+        records[0].images.generated = [
+          'https://example.com/image1.png',
+          'https://example.com/image2.png'
+        ];
+        records[0].status = 'completed';
+        records[0].thumbnail = 'https://example.com/image1.png';
+        records[0].updated_at = new Date().toISOString();
+        
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(records));
+        
+        log('history-result', `✅ 更新记录成功: ${records[0].id}`, 'success');
+        log('history-result', `<pre>${JSON.stringify(records[0], null, 2)}</pre>`);
+      } catch (e) {
+        log('history-result', `❌ 更新失败: ${e.message}`, 'error');
+      }
+    }
+
+    function viewRecords() {
+      const result = document.getElementById('history-result');
+      result.innerHTML = '';
+      
+      try {
+        const records = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        
+        log('history-result', `📊 共有 ${records.length} 条记录`, 'info');
+        
+        if (records.length > 0) {
+          log('history-result', `<pre>${JSON.stringify(records, null, 2)}</pre>`);
+        } else {
+          log('history-result', '暂无记录');
+        }
+      } catch (e) {
+        log('history-result', `❌ 读取失败: ${e.message}`, 'error');
+      }
+    }
+
+    function clearRecords() {
+      if (confirm('确定要清空所有历史记录吗？')) {
+        localStorage.removeItem(HISTORY_KEY);
+        document.getElementById('history-result').innerHTML = '<p class="success">✅ 已清空所有记录</p>';
+      }
+    }
+
+    function checkStorage() {
+      const result = document.getElementById('storage-info');
+      result.innerHTML = '';
+      
+      try {
+        let totalSize = 0;
+        let itemCount = 0;
+        const items = [];
+        
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          const value = localStorage.getItem(key);
+          const size = (key.length + value.length) * 2; // UTF-16
+          
+          totalSize += size;
+          itemCount++;
+          items.push({ key, size: (size / 1024).toFixed(2) + ' KB' });
+        }
+        
+        log('storage-info', `📦 存储项数量: ${itemCount}`, 'info');
+        log('storage-info', `💾 总大小: ${(totalSize / 1024).toFixed(2)} KB (${(totalSize / 1024 / 1024).toFixed(2)} MB)`, 'info');
+        log('storage-info', `<pre>${JSON.stringify(items, null, 2)}</pre>`);
+        
+        // 检查历史记录
+        const historyData = localStorage.getItem(HISTORY_KEY);
+        if (historyData) {
+          const records = JSON.parse(historyData);
+          log('storage-info', `📝 历史记录: ${records.length} 条`, 'success');
+        } else {
+          log('storage-info', '📝 历史记录: 0 条', 'info');
+        }
+      } catch (e) {
+        log('storage-info', `❌ 检查失败: ${e.message}`, 'error');
+      }
+    }
+
+    // 页面加载时自动检查
+    window.onload = function() {
+      checkStorage();
+    };
+  </script>
+</body>
+</html>

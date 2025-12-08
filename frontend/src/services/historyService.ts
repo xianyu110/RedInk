@@ -40,9 +40,17 @@ export function getAllHistory(): HistoryRecord[] {
  */
 function saveHistory(records: HistoryRecord[]): void {
   try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(records))
-  } catch (error) {
-    console.error('保存历史记录失败:', error)
+    const jsonString = JSON.stringify(records)
+    localStorage.setItem(HISTORY_KEY, jsonString)
+    console.log(`✅ 历史记录已保存: ${records.length} 条记录, 大小: ${(jsonString.length / 1024).toFixed(2)} KB`)
+  } catch (error: any) {
+    console.error('❌ 保存历史记录失败:', error)
+    
+    // 检查是否是 localStorage 配额超限
+    if (error.name === 'QuotaExceededError') {
+      console.error('localStorage 存储空间已满！请清理旧记录。')
+      alert('存储空间已满，无法保存历史记录。请删除一些旧记录后重试。')
+    }
   }
 }
 
@@ -74,11 +82,14 @@ export function createHistory(
     records.unshift(newRecord)
     saveHistory(records)
 
+    console.log('✅ 创建新历史记录:', newRecord.id, newRecord.title)
+
     return {
       success: true,
       record_id: newRecord.id
     }
   } catch (error: any) {
+    console.error('❌ 创建历史记录失败:', error)
     return {
       success: false,
       error: error.message
@@ -134,22 +145,50 @@ export function updateHistory(
     const index = records.findIndex(r => r.id === recordId)
 
     if (index === -1) {
+      console.error('历史记录不存在:', recordId)
       return {
         success: false,
         error: '记录不存在'
       }
     }
 
-    records[index] = {
+    // 正确合并嵌套对象
+    const updatedRecord = {
       ...records[index],
-      ...data,
       updated_at: new Date().toISOString()
     }
 
+    // 更新 outline（如果提供）
+    if (data.outline) {
+      updatedRecord.outline = data.outline
+    }
+
+    // 更新 images（如果提供）
+    if (data.images) {
+      updatedRecord.images = {
+        ...updatedRecord.images,
+        ...data.images
+      }
+    }
+
+    // 更新 status（如果提供）
+    if (data.status) {
+      updatedRecord.status = data.status
+    }
+
+    // 更新 thumbnail（如果提供）
+    if (data.thumbnail !== undefined) {
+      updatedRecord.thumbnail = data.thumbnail
+    }
+
+    records[index] = updatedRecord
     saveHistory(records)
+
+    console.log('历史记录已保存到 localStorage:', recordId, updatedRecord)
 
     return { success: true }
   } catch (error: any) {
+    console.error('更新历史记录失败:', error)
     return {
       success: false,
       error: error.message
