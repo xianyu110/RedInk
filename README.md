@@ -56,22 +56,22 @@
 
 ![示例4](./images/example-4.png)
 
----
-
 ## 🏗️ 技术架构
 
 ### 后端
 - **语言**: Python 3.11+
 - **框架**: Flask
 - **AI 模型**:
-  - Gemini 3 (文案生成)
-  - 🍌Nano banana Pro (图片生成)
+  - Gemini 2.0 Flash / GPT-4o (文案生成)
+  - Gemini 3 Pro Image / DALL-E 3 (图片生成)
 - **包管理**: uv
+- **部署**: Docker / Vercel + Render
 
 ### 前端
 - **框架**: Vue 3 + TypeScript
 - **构建**: Vite
 - **状态管理**: Pinia
+- **认证**: JWT Token (可选)
 
 ---
 
@@ -101,9 +101,25 @@ docker-compose up -d
 - 使用 `-v ./output:/app/output` 持久化生成的图片
 - 可选：挂载自定义配置文件 `-v ./text_providers.yaml:/app/text_providers.yaml`
 
----
+### 方式二：Vercel + Render 部署
 
-### 方式二：本地开发部署
+**适合全栈云部署，零服务器运维：**
+
+1. **部署前端到 Vercel**：
+   ```bash
+   git clone https://github.com/HisMax/RedInk.git
+   cd RedInk
+   npx vercel --prod
+   ```
+
+2. **部署后端到 Render**：
+   - 连接 GitHub 仓库
+   - 使用 `render.yaml` 配置文件自动部署
+   - 配置环境变量（API Keys）
+
+详细说明请查看 [DEPLOY.md](DEPLOY.md)
+
+### 方式三：本地开发部署
 
 **前置要求：**
 - Python 3.11+
@@ -168,6 +184,13 @@ pnpm dev
 - **上传参考图片**: 适合品牌方,保持品牌视觉风格
 - **修改描述词**: 精确控制每一页的内容和构图
 - **重新生成**: 对不满意的页面单独重新生成
+- **用户登录**: 可选登录功能，保存个人历史记录（无需密码，输入邮箱即可）
+- **本地配置**: 支持在浏览器中存储 API Keys，保护隐私
+
+### 配置管理
+- **前端本地配置**：API Keys 加密存储在浏览器，无需后端存储
+- **配置测试**：支持实时测试 API 连接，确保配置正确
+- **默认中转 API**：支持使用 `https://apipro.maynor1024.live/` 作为中转服务
 
 ---
 
@@ -175,10 +198,20 @@ pnpm dev
 
 ### 配置方式
 
-项目支持两种配置方式：
+项目支持多种配置方式：
 
 1. **Web 界面配置（推荐）**：启动服务后，在设置页面可视化配置
-2. **YAML 文件配置**：直接编辑配置文件
+2. **前端本地配置**：API Keys 加密存储在浏览器，保护隐私
+3. **YAML 文件配置**：直接编辑配置文件
+
+### 前端本地配置
+
+支持在浏览器中直接配置 API，无需后端存储：
+
+- **加密存储**：使用 XOR 加密保护 API Keys
+- **导入/导出**：支持配置的导入导出
+- **默认中转**：推荐使用 `https://apipro.maynor1024.live/`
+- **实时测试**：测试连接确保配置正确
 
 ### 文本生成配置
 
@@ -189,17 +222,18 @@ pnpm dev
 active_provider: openai
 
 providers:
-  # OpenAI 官方或兼容接口
+  # OpenAI 兼容接口（推荐使用中转）
   openai:
     type: openai_compatible
     api_key: sk-xxxxxxxxxxxxxxxxxxxx
-    base_url: https://api.openai.com/v1
+    base_url: https://apipro.maynor1024.live/v1
     model: gpt-4o
 
-  # Google Gemini（原生接口）
+  # Google Gemini
   gemini:
     type: google_gemini
     api_key: AIzaxxxxxxxxxxxxxxxxxxxxxxxxx
+    base_url: https://apipro.maynor1024.live
     model: gemini-2.0-flash
 ```
 
@@ -214,16 +248,17 @@ active_provider: gemini
 providers:
   # Google Gemini 图片生成
   gemini:
-    type: google_genai
+    type: image_api
     api_key: AIzaxxxxxxxxxxxxxxxxxxxxxxxxx
+    base_url: https://apipro.maynor1024.live/v1
     model: gemini-3-pro-image-preview
-    high_concurrency: false  # 高并发模式
+    high_concurrency: false
 
-  # OpenAI 兼容接口
+  # OpenAI DALL-E
   openai_image:
     type: image_api
     api_key: sk-xxxxxxxxxxxxxxxxxxxx
-    base_url: https://your-api-endpoint.com
+    base_url: https://apipro.maynor1024.live/v1
     model: dall-e-3
     high_concurrency: false
 ```
@@ -262,6 +297,15 @@ providers:
 ---
 
 ## 更新日志
+
+### v1.5.0 (2025-12-08)
+- ✨ 新增用户认证系统：邮箱登录（无需密码），支持历史记录个性化
+- ✨ 新增前端本地配置：API Keys 加密存储在浏览器，保护隐私
+- ✨ 默认使用中转 API：`https://apipro.maynor1024.live/`
+- ✨ 新增 Vercel + Render 部署支持，零服务器运维
+- ✨ 配置实时测试功能，确保 API 连接正确
+- ✨ 历史记录关联用户，支持个人化存储
+- 🔧 登录功能为可选，未登录用户仍可使用核心功能
 
 ### v1.4.0 (2025-11-30)
 - 🏗️ 后端架构重构：拆分单体路由为模块化蓝图（history、images、generation、outline、config）
