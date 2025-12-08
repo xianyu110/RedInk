@@ -1,44 +1,10 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/*.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxDuration": 60
-      }
-    },
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/outline",
-      "dest": "api/outline.py"
-    },
-    {
-      "src": "/api/generate",
-      "dest": "api/generate.py"
-    },
-    {
-      "src": "/api/config",
-      "dest": "api/config.py"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "frontend/dist/$1"
-    }
-  ],
   "installCommand": "cd frontend && rm -rf node_modules package-lock.json && npm install --legacy-peer-deps",
   "buildCommand": "cd frontend && npm run build",
-  "outputDirectory": "frontend/dist"
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/*.py": {
+      "maxDuration": 60
+    }
+  }
 }
