@@ -136,10 +136,10 @@ import {
 import { useGeneratorStore } from '../stores/generator'
 
 // 引入组件
-import StatsOverview from '../components/history/StatsOverview.vue'
-import GalleryCard from '../components/history/GalleryCard.vue'
-import ImageGalleryModal from '../components/history/ImageGalleryModal.vue'
-import OutlineModal from '../components/history/OutlineModal.vue'
+import StatsOverview from '@/components/history/StatsOverview.vue'
+import GalleryCard from '@/components/history/GalleryCard.vue'
+import ImageGalleryModal from '@/components/history/ImageGalleryModal.vue'
+import OutlineModal from '@/components/history/OutlineModal.vue'
 
 const router = useRouter()
 const route = useRoute()
