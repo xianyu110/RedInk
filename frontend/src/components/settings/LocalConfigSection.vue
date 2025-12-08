@@ -298,21 +298,22 @@ function addProvider(service: 'text' | 'image') {
 }
 
 // 保存提供商配置
-function handleSaveProvider(service: 'text' | 'image', name: string, config: ProviderConfig) {
+function handleSaveProvider(service: 'text' | 'image', name: string, providerConfig: ProviderConfig) {
+  const storeConfig = localConfigStore.config
   if (service === 'text') {
     // 检查是否为新添加的
-    const isNew = !config.value.textGeneration.providers[name]
+    const isNew = !storeConfig.textGeneration.providers[name]
     if (isNew) {
-      localConfigStore.addTextProvider(name, config)
+      localConfigStore.addTextProvider(name, providerConfig)
     } else {
-      localConfigStore.updateTextProvider(name, config)
+      localConfigStore.updateTextProvider(name, providerConfig)
     }
   } else {
-    const isNew = !config.value.imageGeneration.providers[name]
+    const isNew = !storeConfig.imageGeneration.providers[name]
     if (isNew) {
-      localConfigStore.addImageProvider(name, config)
+      localConfigStore.addImageProvider(name, providerConfig)
     } else {
-      localConfigStore.updateImageProvider(name, config)
+      localConfigStore.updateImageProvider(name, providerConfig)
     }
   }
 
