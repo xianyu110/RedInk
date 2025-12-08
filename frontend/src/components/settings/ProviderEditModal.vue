@@ -251,6 +251,23 @@ function removeCustomParam(key: string) {
   delete customParams.value[key]
 }
 
+// 获取后端期望的类型
+function getProviderType(): string {
+  // 根据 service 和 provider name 映射到后端期望的类型
+  if (props.service === 'text') {
+    if (props.name === 'gemini') {
+      return 'google_gemini'
+    }
+    return 'openai_compatible'
+  } else {
+    // image service
+    if (props.name === 'gemini') {
+      return 'google_genai'
+    }
+    return 'image_api'
+  }
+}
+
 // 测试连接
 async function testConnection() {
   if (!localConfig.apiKey) {
@@ -264,7 +281,7 @@ async function testConnection() {
   try {
     // 构建测试请求
     const testPayload = {
-      type: props.service,
+      type: getProviderType(),
       provider_name: props.name,
       api_key: localConfig.apiKey,
       base_url: localConfig.baseURL,
