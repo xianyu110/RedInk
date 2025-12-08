@@ -13,169 +13,26 @@
     <div v-else class="settings-container">
       <!-- 本地配置 -->
       <LocalConfigSection />
-
-      <!-- 服务器配置 -->
-      <template v-if="!useLocalConfig">
-        <!-- 文本生成配置 -->
-        <div class="card">
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">文本生成配置</h2>
-              <p class="section-desc">用于生成小红书图文大纲</p>
-            </div>
-            <button class="btn btn-small" @click="openAddTextModal">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              添加
-            </button>
-          </div>
-
-          <!-- 服务商列表表格 -->
-          <ProviderTable
-            :providers="textConfig.providers"
-            :activeProvider="textConfig.active_provider"
-            @activate="activateTextProvider"
-            @edit="openEditTextModal"
-            @delete="deleteTextProvider"
-            @test="testTextProviderInList"
-          />
-        </div>
-
-        <!-- 图片生成配置 -->
-        <div class="card">
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">图片生成配置</h2>
-              <p class="section-desc">用于生成小红书配图</p>
-            </div>
-            <button class="btn btn-small" @click="openAddImageModal">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              添加
-            </button>
-          </div>
-
-          <!-- 服务商列表表格 -->
-          <ProviderTable
-            :providers="imageConfig.providers"
-            :activeProvider="imageConfig.active_provider"
-            @activate="activateImageProvider"
-            @edit="openEditImageModal"
-            @delete="deleteImageProvider"
-            @test="testImageProviderInList"
-          />
-        </div>
-      </template>
     </div>
-
-    <!-- 文本服务商弹窗 -->
-    <ProviderModal
-      :visible="showTextModal"
-      :isEditing="!!editingTextProvider"
-      :formData="textForm"
-      :testing="testingText"
-      :typeOptions="textTypeOptions"
-      providerCategory="text"
-      @close="closeTextModal"
-      @save="saveTextProvider"
-      @test="testTextConnection"
-      @update:formData="updateTextForm"
-    />
-
-    <!-- 图片服务商弹窗 -->
-    <ImageProviderModal
-      :visible="showImageModal"
-      :isEditing="!!editingImageProvider"
-      :formData="imageForm"
-      :testing="testingImage"
-      :typeOptions="imageTypeOptions"
-      @close="closeImageModal"
-      @save="saveImageProvider"
-      @test="testImageConnection"
-      @update:formData="updateImageForm"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
-import ProviderTable from '../components/settings/ProviderTable.vue'
-import ProviderModal from '../components/settings/ProviderModal.vue'
-import ImageProviderModal from '../components/settings/ImageProviderModal.vue'
+import { onMounted, ref } from 'vue'
 import LocalConfigSection from '../components/settings/LocalConfigSection.vue'
-import {
-  useProviderForm,
-  textTypeOptions,
-  imageTypeOptions
-} from '../composables/useProviderForm'
 import { useLocalConfigStore } from '@/stores/localConfig'
 
 /**
- * 系统设置页面
- *
+ * 系统设置页面 - 简化版
+ * 
  * 功能：
- * - 管理文本生成服务商配置
- * - 管理图片生成服务商配置
- * - 测试 API 连接
+ * - 本地配置管理
  */
 
-// 使用 composable 管理表单状态和逻辑
-const {
-  // 状态
-  loading,
-  testingText,
-  testingImage,
-
-  // 配置数据
-  textConfig,
-  imageConfig,
-
-  // 文本服务商弹窗
-  showTextModal,
-  editingTextProvider,
-  textForm,
-
-  // 图片服务商弹窗
-  showImageModal,
-  editingImageProvider,
-  imageForm,
-
-  // 方法
-  loadConfig,
-
-  // 文本服务商方法
-  activateTextProvider,
-  openAddTextModal,
-  openEditTextModal,
-  closeTextModal,
-  saveTextProvider,
-  deleteTextProvider,
-  testTextConnection,
-  testTextProviderInList,
-  updateTextForm,
-
-  // 图片服务商方法
-  activateImageProvider,
-  openAddImageModal,
-  openEditImageModal,
-  closeImageModal,
-  saveImageProvider,
-  deleteImageProvider,
-  testImageConnection,
-  testImageProviderInList,
-  updateImageForm
-} = useProviderForm()
-
-// 本地配置 store
+const loading = ref(false)
 const localConfigStore = useLocalConfigStore()
-const useLocalConfig = computed(() => localConfigStore.useLocalConfig)
 
 onMounted(() => {
-  loadConfig()
   localConfigStore.init()
 })
 </script>
