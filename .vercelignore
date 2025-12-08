@@ -14,7 +14,7 @@ image_providers.yaml
 
 # 输出目录
 output/
-history/
+/history/
 
 # IDE
 .vscode/
