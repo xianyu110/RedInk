@@ -24,7 +24,6 @@ def create_api_blueprint():
     """
     from .outline_routes import create_outline_blueprint
     from .image_routes import create_image_blueprint
-    from .history_routes import create_history_blueprint
     from .config_routes import create_config_blueprint
     from .auth import bp as auth_bp
     from .history import bp as history_bp
@@ -35,7 +34,6 @@ def create_api_blueprint():
     # 将子蓝图注册到主蓝图（不带额外前缀）
     api_bp.register_blueprint(create_outline_blueprint())
     api_bp.register_blueprint(create_image_blueprint())
-    api_bp.register_blueprint(create_history_blueprint())
     api_bp.register_blueprint(create_config_blueprint())
     api_bp.register_blueprint(auth_bp)
     api_bp.register_blueprint(history_bp)

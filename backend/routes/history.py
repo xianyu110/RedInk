@@ -8,7 +8,7 @@ from flask import Blueprint, request, jsonify
 from backend.storage import get_storage
 from backend.routes.auth import get_current_user
 
-bp = Blueprint('history', __name__, url_prefix='/api')
+bp = Blueprint('history', __name__)
 
 
 @bp.route('/history', methods=['POST'])
