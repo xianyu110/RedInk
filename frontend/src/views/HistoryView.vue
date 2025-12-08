@@ -128,11 +128,10 @@ import {
   searchHistory,
   deleteHistory,
   getHistory,
-  type HistoryRecord,
-  regenerateImage as apiRegenerateImage,
   updateHistory,
-  scanAllTasks
-} from '../api'
+  type HistoryRecord
+} from '../services/historyService'
+import { regenerateSingleImage } from '../services/aiService'
 import { useGeneratorStore } from '../stores/generator'
 
 // 引入组件
@@ -163,11 +162,11 @@ const isScanning = ref(false)
 /**
  * 加载历史记录列表
  */
-async function loadData() {
+function loadData() {
   loading.value = true
   try {
     let statusFilter = currentTab.value === 'all' ? undefined : currentTab.value
-    const res = await getHistoryList(currentPage.value, 12, statusFilter)
+    const res = getHistoryList(currentPage.value, 12, statusFilter)
     if (res.success) {
       records.value = res.records
       totalPages.value = res.total_pages
@@ -182,9 +181,9 @@ async function loadData() {
 /**
  * 加载统计数据
  */
-async function loadStats() {
+function loadStats() {
   try {
-    const res = await getHistoryStats()
+    const res = getHistoryStats()
     if (res.success) stats.value = res
   } catch(e) {}
 }
@@ -201,14 +200,14 @@ function switchTab(tab: string) {
 /**
  * 搜索历史记录
  */
-async function handleSearch() {
+function handleSearch() {
   if (!searchKeyword.value.trim()) {
     loadData()
     return
   }
   loading.value = true
   try {
-    const res = await searchHistory(searchKeyword.value)
+    const res = searchHistory(searchKeyword.value)
     if (res.success) {
       records.value = res.records
       totalPages.value = 1
@@ -221,8 +220,8 @@ async function handleSearch() {
 /**
  * 加载记录并跳转到编辑页
  */
-async function loadRecord(id: string) {
-  const res = await getHistory(id)
+function loadRecord(id: string) {
+  const res = getHistory(id)
   if (res.success && res.record) {
     store.setTopic(res.record.title)
     store.setOutline(res.record.outline.raw, res.record.outline.pages)
@@ -230,12 +229,12 @@ async function loadRecord(id: string) {
     if (res.record.images.generated.length > 0) {
       store.taskId = res.record.images.task_id
       store.images = res.record.outline.pages.map((page, idx) => {
-        const filename = res.record!.images.generated[idx]
+        const imageUrl = res.record!.images.generated[idx]
         return {
           index: idx,
-          url: filename ? `/api/images/${res.record!.images.task_id}/${filename}` : '',
-          status: filename ? 'done' : 'error',
-          retryable: !filename
+          url: imageUrl || '',
+          status: imageUrl ? 'done' : 'error',
+          retryable: !imageUrl
         }
       })
     }
@@ -246,8 +245,8 @@ async function loadRecord(id: string) {
 /**
  * 查看图片
  */
-async function viewImages(id: string) {
-  const res = await getHistory(id)
+function viewImages(id: string) {
+  const res = getHistory(id)
   if (res.success) viewingRecord.value = res.record
 }
 
@@ -262,9 +261,9 @@ function closeGallery() {
 /**
  * 确认删除
  */
-async function confirmDelete(record: any) {
+function confirmDelete(record: any) {
   if(confirm('确定删除吗？')) {
-    await deleteHistory(record.id)
+    deleteHistory(record.id)
     loadData()
     loadStats()
   }
@@ -282,8 +281,8 @@ function changePage(p: number) {
  * 重新生成历史记录中的图片
  */
 async function regenerateHistoryImage(index: number) {
-  if (!viewingRecord.value || !viewingRecord.value.images.task_id) {
-    alert('无法重新生成：缺少任务信息')
+  if (!viewingRecord.value) {
+    alert('无法重新生成：缺少记录信息')
     return
   }
 
@@ -293,31 +292,12 @@ async function regenerateHistoryImage(index: number) {
   regeneratingImages.value.add(index)
 
   try {
-    const context = {
-      fullOutline: viewingRecord.value.outline.raw || '',
-      userTopic: viewingRecord.value.title || ''
-    }
+    const result = await regenerateSingleImage(page)
 
-    const result = await apiRegenerateImage(
-      viewingRecord.value.images.task_id,
-      page,
-      true,
-      context
-    )
+    if (result.success && result.imageUrl) {
+      viewingRecord.value.images.generated[index] = result.imageUrl
 
-    if (result.success && result.image_url) {
-      const filename = result.image_url.split('/').pop()
-      viewingRecord.value.images.generated[index] = filename
-
-      // 刷新图片
-      const timestamp = Date.now()
-      const imgElements = document.querySelectorAll(`img[src*="${viewingRecord.value.images.task_id}/${filename}"]`)
-      imgElements.forEach(img => {
-        const baseUrl = (img as HTMLImageElement).src.split('?')[0]
-        ;(img as HTMLImageElement).src = `${baseUrl}?t=${timestamp}`
-      })
-
-      await updateHistory(viewingRecord.value.id, {
+      updateHistory(viewingRecord.value.id, {
         images: {
           task_id: viewingRecord.value.images.task_id,
           generated: viewingRecord.value.images.generated
@@ -338,10 +318,10 @@ async function regenerateHistoryImage(index: number) {
 /**
  * 下载单张图片
  */
-function downloadImage(filename: string, index: number) {
-  if (!viewingRecord.value) return
+function downloadImage(imageUrl: string, index: number) {
+  if (!imageUrl) return
   const link = document.createElement('a')
-  link.href = `/api/images/${viewingRecord.value.images.task_id}/${filename}?thumbnail=false`
+  link.href = imageUrl
   link.download = `page_${index + 1}.png`
   link.click()
 }
@@ -351,60 +331,45 @@ function downloadImage(filename: string, index: number) {
  */
 function downloadAllImages() {
   if (!viewingRecord.value) return
-  const link = document.createElement('a')
-  link.href = `/api/history/${viewingRecord.value.id}/download`
-  link.click()
+  
+  // 逐个下载所有图片
+  viewingRecord.value.images.generated.forEach((imageUrl: string, index: number) => {
+    if (imageUrl) {
+      setTimeout(() => {
+        const link = document.createElement('a')
+        link.href = imageUrl
+        link.download = `page_${index + 1}.png`
+        link.click()
+      }, index * 300)
+    }
+  })
 }
 
 /**
- * 扫描所有任务并同步
+ * 同步历史记录（纯前端版本不需要扫描后端任务）
  */
-async function handleScanAll() {
+function handleScanAll() {
   isScanning.value = true
   try {
-    const result = await scanAllTasks()
-    if (result.success) {
-      let message = `扫描完成！\n`
-      message += `- 总任务数: ${result.total_tasks || 0}\n`
-      message += `- 同步成功: ${result.synced || 0}\n`
-      message += `- 同步失败: ${result.failed || 0}\n`
-
-      if (result.orphan_tasks && result.orphan_tasks.length > 0) {
-        message += `- 孤立任务（无记录）: ${result.orphan_tasks.length} 个\n`
-      }
-
-      alert(message)
-      await loadData()
-      await loadStats()
-    } else {
-      alert('扫描失败: ' + (result.error || '未知错误'))
-    }
+    // 纯前端版本，只需要重新加载数据
+    loadData()
+    loadStats()
+    alert('同步完成！')
   } catch (e) {
-    console.error('扫描失败:', e)
-    alert('扫描失败: ' + String(e))
+    console.error('同步失败:', e)
+    alert('同步失败: ' + String(e))
   } finally {
     isScanning.value = false
   }
 }
 
-onMounted(async () => {
-  await loadData()
-  await loadStats()
+onMounted(() => {
+  loadData()
+  loadStats()
 
   // 检查路由参数，如果有 ID 则自动打开图片查看器
   if (route.params.id) {
-    await viewImages(route.params.id as string)
-  }
-
-  // 自动执行一次扫描（静默，不显示结果）
-  try {
-    const result = await scanAllTasks()
-    if (result.success && (result.synced || 0) > 0) {
-      await loadData()
-      await loadStats()
-    }
-  } catch (e) {
-    console.error('自动扫描失败:', e)
+    viewImages(route.params.id as string)
   }
 })
 </script>

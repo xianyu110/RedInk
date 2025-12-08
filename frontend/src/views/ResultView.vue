@@ -82,21 +82,34 @@
 .image-card:hover img {
   transform: scale(1.05);
 }
+
+.spinner {
+  border: 2px solid var(--primary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 </style>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGeneratorStore } from '../stores/generator'
-import { regenerateImage } from '../api'
+import { regenerateSingleImage } from '../services/aiService'
+import { updateHistory } from '../services/historyService'
 
 const router = useRouter()
 const store = useGeneratorStore()
 const regeneratingIndex = ref<number | null>(null)
 
 const viewImage = (url: string) => {
-  const baseUrl = url.split('?')[0]
-  window.open(baseUrl + '?thumbnail=false', '_blank')
+  window.open(url, '_blank')
 }
 
 const startOver = () => {
@@ -107,35 +120,28 @@ const startOver = () => {
 const downloadOne = (image: any) => {
   if (image.url) {
     const link = document.createElement('a')
-    const baseUrl = image.url.split('?')[0]
-    link.href = baseUrl + '?thumbnail=false'
+    link.href = image.url
     link.download = `rednote_page_${image.index + 1}.png`
     link.click()
   }
 }
 
 const downloadAll = () => {
-  if (store.recordId) {
-    const link = document.createElement('a')
-    link.href = `/api/history/${store.recordId}/download`
-    link.click()
-  } else {
-    store.images.forEach((image, index) => {
-      if (image.url) {
-        setTimeout(() => {
-          const link = document.createElement('a')
-          const baseUrl = image.url.split('?')[0]
-          link.href = baseUrl + '?thumbnail=false'
-          link.download = `rednote_page_${image.index + 1}.png`
-          link.click()
-        }, index * 300)
-      }
-    })
-  }
+  // 逐个下载所有图片
+  store.images.forEach((image, index) => {
+    if (image.url) {
+      setTimeout(() => {
+        const link = document.createElement('a')
+        link.href = image.url
+        link.download = `rednote_page_${image.index + 1}.png`
+        link.click()
+      }, index * 300)
+    }
+  })
 }
 
 const handleRegenerate = async (image: any) => {
-  if (!store.taskId || regeneratingIndex.value !== null) return
+  if (regeneratingIndex.value !== null) return
 
   regeneratingIndex.value = image.index
   try {
@@ -146,16 +152,23 @@ const handleRegenerate = async (image: any) => {
        return
     }
 
-    // 构建上下文信息
-    const context = {
-      fullOutline: store.outline.raw || '',
-      userTopic: store.topic || ''
-    }
-
-    const result = await regenerateImage(store.taskId, pageContent, true, context)
-    if (result.success && result.image_url) {
-       const newUrl = result.image_url
-       store.updateImage(image.index, newUrl)
+    const result = await regenerateSingleImage(pageContent)
+    if (result.success && result.imageUrl) {
+       store.updateImage(image.index, result.imageUrl)
+       
+       // 更新历史记录
+       if (store.recordId) {
+         const generatedImages = store.images
+           .filter(img => img.status === 'done' && img.url)
+           .map(img => img.url)
+         
+         updateHistory(store.recordId, {
+           images: {
+             task_id: store.taskId,
+             generated: generatedImages
+           }
+         })
+       }
     } else {
        alert('重绘失败: ' + (result.error || '未知错误'))
     }

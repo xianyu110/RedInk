@@ -57,7 +57,13 @@ export async function generateOutlineWithAI(topic: string, images?: File[]): Pro
     }
 
     // 调用 OpenAI 兼容 API
-    const response = await fetch(`${apiConfig.baseURL}/chat/completions`, {
+    const apiUrl = apiConfig.baseURL.endsWith('/v1')
+      ? `${apiConfig.baseURL}/chat/completions`
+      : `${apiConfig.baseURL}/v1/chat/completions`
+    
+    console.log('调用文本生成 API:', apiUrl)
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -159,7 +165,14 @@ export async function generateImageWithAI(
       : prompt
 
     // 调用图片生成 API
-    const response = await fetch(`${apiConfig.baseURL}/images/generations`, {
+    const apiUrl = apiConfig.baseURL.endsWith('/v1') 
+      ? `${apiConfig.baseURL}/images/generations`
+      : `${apiConfig.baseURL}/v1/images/generations`
+    
+    console.log('调用图片生成 API:', apiUrl)
+    console.log('提示词:', optimizedPrompt)
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -182,8 +195,10 @@ export async function generateImageWithAI(
       try {
         const errorData = JSON.parse(errorText)
         errorMsg = errorData.error?.message || errorMsg
+        console.error('API 错误响应:', errorData)
       } catch {
         errorMsg = errorText || errorMsg
+        console.error('API 错误文本:', errorText)
       }
       
       return {
@@ -193,6 +208,7 @@ export async function generateImageWithAI(
     }
 
     const data = await response.json()
+    console.log('图片生成成功:', data)
     const imageUrl = data.data[0].url
 
     return {
@@ -200,6 +216,16 @@ export async function generateImageWithAI(
       imageUrl
     }
   } catch (error: any) {
+    console.error('图片生成异常:', error)
+    
+    // 检查是否是网络错误
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      return {
+        success: false,
+        error: '网络连接失败，请检查：1) API 地址是否正确 2) 是否存在 CORS 跨域问题 3) 网络连接是否正常'
+      }
+    }
+    
     return {
       success: false,
       error: error.message || '图片生成失败'

@@ -4,8 +4,8 @@
     <!-- 封面区域 -->
     <div class="card-cover" @click="$emit('preview', record.id)">
       <img
-        v-if="record.thumbnail && record.task_id"
-        :src="`/api/images/${record.task_id}/${record.thumbnail}`"
+        v-if="record.thumbnail"
+        :src="record.thumbnail"
         alt="cover"
         loading="lazy"
         decoding="async"
@@ -62,7 +62,7 @@ import { computed } from 'vue'
  */
 
 // 定义记录类型
-interface Record {
+interface HistoryRecord {
   id: string
   title: string
   status: 'draft' | 'completed' | 'generating'
@@ -74,26 +74,26 @@ interface Record {
 
 // 定义 Props
 const props = defineProps<{
-  record: Record
+  record: HistoryRecord
 }>()
 
 // 定义 Emits
 defineEmits<{
   (e: 'preview', id: string): void
   (e: 'edit', id: string): void
-  (e: 'delete', record: Record): void
+  (e: 'delete', record: HistoryRecord): void
 }>()
 
 /**
  * 获取状态文本
  */
 const statusText = computed(() => {
-  const map: Record<string, string> = {
+  const statusMap: { [key: string]: string } = {
     draft: '草稿',
     completed: '已完成',
     generating: '生成中'
   }
-  return map[props.record.status] || props.record.status
+  return statusMap[props.record.status] || props.record.status
 })
 
 /**

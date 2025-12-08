@@ -168,8 +168,6 @@ function regenerateImage(index: number) {
 
 // 批量重试所有失败的图片
 async function retryAllFailed() {
-  if (!store.taskId) return
-
   const failedPages = store.getFailedPages()
   if (failedPages.length === 0) return
 
@@ -181,35 +179,39 @@ async function retryAllFailed() {
   })
 
   try {
-    await apiRetryFailed(
-      store.taskId,
-      failedPages,
-      // onProgress
-      () => {},
-      // onComplete
-      (event) => {
-        if (event.image_url) {
-          store.updateImage(event.index, event.image_url)
-        }
-      },
-      // onError
-      (event) => {
-        store.updateProgress(event.index, 'error', undefined, event.message)
-      },
-      // onFinish
-      () => {
-        isRetrying.value = false
-      },
-      // onStreamError
-      (err) => {
-        console.error('重试失败:', err)
-        isRetrying.value = false
-        error.value = '重试失败: ' + err.message
+    // 逐个重试失败的图片
+    for (const page of failedPages) {
+      const result = await generateImageWithAI('', page.content)
+
+      if (result.success && result.imageUrl) {
+        store.updateImage(page.index, result.imageUrl)
+      } else {
+        store.updateProgress(page.index, 'error', undefined, result.error)
       }
-    )
+
+      // 添加延迟避免 API 限流
+      if (failedPages.indexOf(page) < failedPages.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000))
+      }
+    }
+
+    // 更新历史记录
+    if (store.recordId) {
+      const generatedImages = store.images
+        .filter(img => img.status === 'done' && img.url)
+        .map(img => img.url)
+      
+      updateHistory(store.recordId, {
+        images: {
+          task_id: store.taskId,
+          generated: generatedImages
+        }
+      })
+    }
   } catch (e) {
-    isRetrying.value = false
     error.value = '重试失败: ' + String(e)
+  } finally {
+    isRetrying.value = false
   }
 }
 
@@ -237,78 +239,77 @@ onMounted(async () => {
 
   store.startGeneration()
 
-  // 使用新的图片生成服务
-  await generateImagesForPages(
-    store.outline.pages,
-    null,
-    store.outline.raw,  // 传入完整大纲文本
-    // onProgress
-    (event) => {
-      console.log('Progress:', event)
-    },
-    // onComplete
-    (event) => {
-      console.log('Complete:', event)
-      if (event.image_url) {
-        store.updateProgress(event.index, 'done', event.image_url)
-      }
-    },
-    // onError
-    (event) => {
-      console.error('Error:', event)
-      store.updateProgress(event.index, 'error', undefined, event.message)
-    },
-    // onFinish
-    async (event) => {
-      console.log('Finish:', event)
-      store.finishGeneration(event.task_id)
+  // 生成任务 ID
+  const taskId = `task_${Date.now()}`
+  store.taskId = taskId
 
-      // 更新历史记录
-      if (store.recordId) {
-        try {
-          // 收集所有生成的图片文件名
-          const generatedImages = event.images.filter(img => img !== null)
+  // 使用新的图片生成服务 - 逐个生成图片
+  for (let i = 0; i < store.outline.pages.length; i++) {
+    const page = store.outline.pages[i]
+    
+    // 设置为生成中状态
+    store.updateProgress(i, 'generating')
 
-          // 确定状态
-          let status = 'completed'
-          if (hasFailedImages.value) {
-            status = generatedImages.length > 0 ? 'partial' : 'draft'
-          }
+    // 生成图片
+    const result = await generateImageWithAI('', page.content)
 
-          // 获取封面图作为缩略图（只保存文件名，不是完整URL）
-          const thumbnail = generatedImages.length > 0 ? generatedImages[0] : null
+    if (result.success && result.imageUrl) {
+      store.updateProgress(i, 'done', result.imageUrl)
+    } else {
+      store.updateProgress(i, 'error', undefined, result.error)
+    }
 
-          await updateHistory(store.recordId, {
-            images: {
-              task_id: event.task_id,
-              generated: generatedImages
-            },
-            status: status,
-            thumbnail: thumbnail
-          })
-          console.log('历史记录已更新')
-        } catch (e) {
-          console.error('更新历史记录失败:', e)
-        }
+    // 添加延迟避免 API 限流（DALL-E 3 有速率限制）
+    if (i < store.outline.pages.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+    }
+  }
+
+  // 完成生成
+  store.finishGeneration(taskId)
+
+  // 更新历史记录
+  if (store.recordId) {
+    try {
+      // 收集所有生成的图片 URL
+      const generatedImages = store.images
+        .filter(img => img.status === 'done' && img.url)
+        .map(img => img.url)
+
+      // 确定状态
+      let status = 'completed'
+      if (hasFailedImages.value) {
+        status = generatedImages.length > 0 ? 'partial' : 'draft'
       }
 
-      // 如果没有失败的，跳转到结果页
-      if (!hasFailedImages.value) {
-        setTimeout(() => {
-          router.push('/result')
-        }, 1000)
+      // 获取封面图作为缩略图
+      const thumbnail = generatedImages.length > 0 ? generatedImages[0] : undefined
+
+      const updateData: any = {
+        images: {
+          task_id: taskId,
+          generated: generatedImages
+        },
+        status: status
       }
-    },
-    // onStreamError
-    (err) => {
-      console.error('Stream Error:', err)
-      error.value = '生成失败: ' + err.message
-    },
-    // userImages - 用户上传的参考图片
-    store.userImages.length > 0 ? store.userImages : undefined,
-    // userTopic - 用户原始输入
-    store.topic
-  )
+      
+      if (thumbnail) {
+        updateData.thumbnail = thumbnail
+      }
+
+      updateHistory(store.recordId, updateData)
+      console.log('历史记录已更新')
+    } catch (e) {
+      console.error('更新历史记录失败:', e)
+    }
+  }
+
+  // 如果没有失败的，跳转到结果页
+  if (!hasFailedImages.value) {
+    setTimeout(() => {
+      router.push('/result')
+    }, 1000)
+  }
 })
 </script>
 

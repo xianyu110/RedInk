@@ -126,7 +126,7 @@ export function updateHistory(
     outline?: { raw: string; pages: Page[] }
     images?: { task_id: string | null; generated: string[] }
     status?: string
-    thumbnail?: string
+    thumbnail?: string | null
   }
 ): { success: boolean; error?: string } {
   try {
