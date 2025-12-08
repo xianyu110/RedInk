@@ -6,12 +6,13 @@ active_provider: gemini
 
 # 服务商列表
 providers:
-  # Google Gemini 图片生成（推荐）
+  # Google Gemini 图片生成（通过中转 API）
   gemini:
-    type: google_genai
+    type: image_api
     api_key: AIzaxxxxxxxxxxxxxxxxxxxxxxxxx
+    base_url: https://apipro.maynor1024.live/v1
     model: gemini-3-pro-image-preview
-    high_concurrency: false  # 是否启用高并发，GCP 300$ 试用账号不建议启用
+    high_concurrency: false  # 是否启用高并发
 
   # Google Vertex AI（需要配置 GCP 凭证）
   vertex:
@@ -20,10 +21,10 @@ providers:
     model: gemini-3-pro-image-preview
     high_concurrency: true  # 付费账号可以启用高并发
 
-  # OpenAI 兼容接口（如支持图片生成的第三方 API）
+  # OpenAI DALL-E（通过中转 API）
   openai_image:
     type: image_api
     api_key: sk-xxxxxxxxxxxxxxxxxxxx
-    base_url: https://your-api-endpoint.com
+    base_url: https://apipro.maynor1024.live/v1
     model: dall-e-3
     high_concurrency: false

@@ -1,0 +1,10 @@
+FROM redis:7-alpine
+
+# 设置 Redis 密码
+CMD ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+
+# 暴露端口
+EXPOSE 6379
+
+# 数据卷
+VOLUME ["/data"]

@@ -6,17 +6,18 @@ active_provider: openai
 
 # 服务商列表
 providers:
-  # OpenAI 官方 API
+  # OpenAI (通过中转 API)
   openai:
     type: openai_compatible
     api_key: sk-xxxxxxxxxxxxxxxxxxxx
-    base_url: https://api.openai.com/v1
+    base_url: https://apipro.maynor1024.live/v1
     model: gpt-4o
 
-  # Google Gemini（原生接口）
+  # Google Gemini（通过中转 API）
   gemini:
-    type: google_gemini
+    type: openai_compatible
     api_key: AIzaxxxxxxxxxxxxxxxxxxxxxxxxx
+    base_url: https://apipro.maynor1024.live/v1
     model: gemini-2.0-flash
 
   # 第三方 OpenAI 兼容接口示例（如 OneAPI、New API 等）

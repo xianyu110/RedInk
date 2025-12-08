@@ -15,6 +15,7 @@ import zipfile
 import logging
 from flask import Blueprint, request, jsonify, send_file
 from backend.services.history import get_history_service
+from backend.routes.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,27 @@ def create_history_blueprint():
 
     @history_bp.route('/history', methods=['POST'])
     def create_history():
+        """
+        创建历史记录
+
+        请求体：
+        - topic: 主题标题（必填）
+        - outline: 大纲内容（必填）
+        - task_id: 关联的任务 ID（可选）
+
+        返回：
+        - success: 是否成功
+        - record_id: 新创建的记录 ID
+        """
+        # 检查用户登录
+        user = get_current_user()
+        if not user:
+            return jsonify({
+                "success": False,
+                "error": "请先登录"
+            }), 401
+
+        try:
         """
         创建历史记录
 

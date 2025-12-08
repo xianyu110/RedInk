@@ -6,7 +6,7 @@
         <img src="/logo.png" alt="红墨" class="logo-icon" />
         <span class="logo-text">红墨</span>
       </div>
-      
+
       <nav class="nav-menu">
         <RouterLink to="/" class="nav-item" active-class="active">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -21,15 +21,13 @@
           系统设置
         </RouterLink>
       </nav>
-      
-      <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color);">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <img src="/logo.png" alt="默子" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" />
-          <div>
-            <div style="font-size: 14px; font-weight: 600;">默子</div>
-            <div style="font-size: 12px; color: var(--text-sub);">mozi</div>
-          </div>
-        </div>
+
+      <!-- 用户信息区域 -->
+      <div class="user-area">
+        <UserMenu v-if="isAuthenticated" />
+        <button v-else class="login-btn" @click="showLogin = true">
+          登录
+        </button>
       </div>
     </aside>
 
@@ -51,16 +49,59 @@
         </footer>
       </RouterView>
     </main>
+
+    <!-- 登录模态框 -->
+    <LoginModal v-if="showLogin" @close="showLogin = false" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { RouterView, RouterLink } from 'vue-router'
-import { onMounted } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { setupAutoSave } from './stores/generator'
+import { useAuthStore } from './stores/auth'
+import UserMenu from './components/auth/UserMenu.vue'
+import LoginModal from './components/auth/LoginModal.vue'
+
+const authStore = useAuthStore()
+
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const showLogin = ref(false)
 
 // 启用自动保存到 localStorage
 onMounted(() => {
   setupAutoSave()
+  // 初始化认证状态
+  authStore.init()
+
+  // 监听登录事件
+  window.addEventListener('show-login', () => {
+    showLogin.value = true
+  })
 })
 </script>
+
+<style>
+.user-area {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.login-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.login-btn:hover {
+  background: #2563eb;
+}
+</style>

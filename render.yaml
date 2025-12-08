@@ -1,0 +1,66 @@
+services:
+  # PostgreSQL 数据库服务
+  - type: pserv
+    name: redink-db
+    env: docker
+    repo: https://github.com/HisMax/RedInk.git
+    dockerfilePath: ./docker/Dockerfile.postgres
+    plan: free
+    envVars:
+      - key: POSTGRES_DB
+        value: redink
+      - key: POSTGRES_USER
+        value: redink_user
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+
+  # Redis 服务（用于缓存和会话）
+  - type: pserv
+    name: redink-redis
+    env: docker
+    repo: https://github.com/HisMax/RedInk.git
+    dockerfilePath: ./docker/Dockerfile.redis
+    plan: free
+    envVars:
+      - key: REDIS_PASSWORD
+        generateValue: true
+
+  # Web 服务
+  - type: web
+    name: redink-api
+    env: python
+    plan: free
+    repo: https://github.com/HisMax/RedInk.git
+    buildCommand: |
+      pip install -r requirements.txt
+      cd frontend && pnpm install && pnpm build
+    startCommand: |
+      cd backend && python -m gunicorn app:app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - fromDatabase:
+          name: redink-db
+          property: connectionString
+        key: DATABASE_URL
+      - fromService:
+          type: pserv
+          name: redink-redis
+          property: host
+        key: REDIS_HOST
+      - fromService:
+          type: pserv
+          name: redink-redis
+          envVarKey: REDIS_PASSWORD
+        key: REDIS_PASSWORD
+      - key: FLASK_ENV
+        value: production
+      - key: CORS_ORIGINS
+        value: https://your-app-name.onrender.com
+
+# 静态文件存储（可选，使用 Render 的磁盘持久化）
+disk:
+  name: redink-storage
+  mountPath: /app/storage
+  sizeGB: 1
