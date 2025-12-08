@@ -1,0 +1,44 @@
+# 开发和测试文件
+tests/
+*.test.py
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# 配置文件（使用环境变量代替）
+text_providers.yaml
+image_providers.yaml
+*.yaml.example
+.env
+.env.local
+
+# 输出目录
+output/
+history/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# 文档和示例
+images/
+docs/
+README.md
+LICENSE
+
+# Docker 相关
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 本地开发
+frontend/node_modules/
+frontend/src/
+uv.lock
+pyproject.toml

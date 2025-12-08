@@ -1,5 +1,6 @@
 import logging
 import yaml
+import os
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -16,10 +17,56 @@ class Config:
     _text_providers_config = None
 
     @classmethod
+    def _load_config_from_env(cls):
+        """从环境变量加载配置（用于 Vercel 等云平台）"""
+        config = {}
+
+        # 加载文本生成配置
+        text_provider = os.getenv('TEXT_PROVIDER', 'openai')
+        if os.getenv('TEXT_API_KEY'):
+            config['text'] = {
+                'active_provider': text_provider,
+                'providers': {
+                    text_provider: {
+                        'type': 'openai_compatible' if text_provider == 'openai' else 'google_gemini',
+                        'api_key': os.getenv('TEXT_API_KEY'),
+                        'base_url': os.getenv('TEXT_BASE_URL', 'https://apipro.maynor1024.live/v1'),
+                        'model': os.getenv('TEXT_MODEL', 'gpt-4o')
+                    }
+                }
+            }
+
+        # 加载图片生成配置
+        image_provider = os.getenv('IMAGE_PROVIDER', 'gemini')
+        if os.getenv('IMAGE_API_KEY'):
+            config['image'] = {
+                'active_provider': image_provider,
+                'providers': {
+                    image_provider: {
+                        'type': 'image_api',
+                        'api_key': os.getenv('IMAGE_API_KEY'),
+                        'base_url': os.getenv('IMAGE_BASE_URL', 'https://apipro.maynor1024.live/v1'),
+                        'model': os.getenv('IMAGE_MODEL', 'gemini-3-pro-image-preview'),
+                        'high_concurrency': False
+                    }
+                }
+            }
+
+        return config
+
+    @classmethod
     def load_image_providers_config(cls):
         if cls._image_providers_config is not None:
             return cls._image_providers_config
 
+        # 优先从环境变量加载（用于 Vercel 等云平台）
+        env_config = cls._load_config_from_env()
+        if 'image' in env_config:
+            logger.info("从环境变量加载图片生成配置")
+            cls._image_providers_config = env_config['image']
+            return cls._image_providers_config
+
+        # 从 YAML 文件加载
         config_path = Path(__file__).parent.parent / 'image_providers.yaml'
         logger.debug(f"加载图片服务商配置: {config_path}")
 
@@ -54,6 +101,14 @@ class Config:
         if cls._text_providers_config is not None:
             return cls._text_providers_config
 
+        # 优先从环境变量加载（用于 Vercel 等云平台）
+        env_config = cls._load_config_from_env()
+        if 'text' in env_config:
+            logger.info("从环境变量加载文本生成配置")
+            cls._text_providers_config = env_config['text']
+            return cls._text_providers_config
+
+        # 从 YAML 文件加载
         config_path = Path(__file__).parent.parent / 'text_providers.yaml'
         logger.debug(f"加载文本服务商配置: {config_path}")
 
