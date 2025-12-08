@@ -6,7 +6,6 @@ import GenerateView from '../views/GenerateView.vue'
 import ResultView from '../views/ResultView.vue'
 import HistoryView from '../views/HistoryView.vue'
 import SettingsView from '../views/SettingsView.vue'
-import TutorialTest from '../components/tutorial/TutorialTest.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,11 +46,6 @@ const router = createRouter({
       path: '/settings',
       name: 'settings',
       component: SettingsView
-    },
-    {
-      path: '/tutorial-test',
-      name: 'tutorial-test',
-      component: TutorialTest
     }
   ]
 })
