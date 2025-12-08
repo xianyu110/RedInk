@@ -51,7 +51,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGeneratorStore } from '../stores/generator'
-import { generateOutline } from '../api'
+import { generateOutlineWithAI } from '../services/aiService'
 
 // 引入组件
 import ShowcaseBackground from '../components/home/ShowcaseBackground.vue'
@@ -88,7 +88,7 @@ async function handleGenerate() {
   try {
     const imageFiles = uploadedImageFiles.value
 
-    const result = await generateOutline(
+    const result = await generateOutlineWithAI(
       topic.value.trim(),
       imageFiles.length > 0 ? imageFiles : undefined
     )
