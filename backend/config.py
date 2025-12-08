@@ -21,36 +21,74 @@ class Config:
         """从环境变量加载配置（用于 Vercel 等云平台）"""
         config = {}
 
-        # 加载文本生成配置
-        text_provider = os.getenv('TEXT_PROVIDER', 'openai')
-        if os.getenv('TEXT_API_KEY'):
-            config['text'] = {
-                'active_provider': text_provider,
-                'providers': {
-                    text_provider: {
-                        'type': 'openai_compatible' if text_provider == 'openai' else 'google_gemini',
-                        'api_key': os.getenv('TEXT_API_KEY'),
-                        'base_url': os.getenv('TEXT_BASE_URL', 'https://apipro.maynor1024.live/v1'),
-                        'model': os.getenv('TEXT_MODEL', 'gpt-4o')
+        # 优先从请求配置加载
+        try:
+            from backend.request_config import get_request_config, has_request_config
+            
+            # 加载文本生成配置
+            if has_request_config('text'):
+                req_config = get_request_config('text')
+                config['text'] = {
+                    'active_provider': 'request_provider',
+                    'providers': {
+                        'request_provider': {
+                            'type': 'openai_compatible',
+                            'api_key': req_config['api_key'],
+                            'base_url': req_config.get('base_url', 'https://apipro.maynor1024.live/v1'),
+                            'model': req_config.get('model', 'gpt-4o')
+                        }
                     }
                 }
-            }
+            
+            # 加载图片生成配置
+            if has_request_config('image'):
+                req_config = get_request_config('image')
+                config['image'] = {
+                    'active_provider': 'request_provider',
+                    'providers': {
+                        'request_provider': {
+                            'type': 'image_api',
+                            'api_key': req_config['api_key'],
+                            'base_url': req_config.get('base_url', 'https://apipro.maynor1024.live/v1'),
+                            'model': req_config.get('model', 'gemini-3-pro-image-preview'),
+                            'high_concurrency': req_config.get('high_concurrency', False)
+                        }
+                    }
+                }
+        except ImportError:
+            pass
 
-        # 加载图片生成配置
-        image_provider = os.getenv('IMAGE_PROVIDER', 'gemini')
-        if os.getenv('IMAGE_API_KEY'):
-            config['image'] = {
-                'active_provider': image_provider,
-                'providers': {
-                    image_provider: {
-                        'type': 'image_api',
-                        'api_key': os.getenv('IMAGE_API_KEY'),
-                        'base_url': os.getenv('IMAGE_BASE_URL', 'https://apipro.maynor1024.live/v1'),
-                        'model': os.getenv('IMAGE_MODEL', 'gemini-3-pro-image-preview'),
-                        'high_concurrency': False
+        # 如果没有请求配置，从环境变量加载
+        if 'text' not in config:
+            text_provider = os.getenv('TEXT_PROVIDER', 'openai')
+            if os.getenv('TEXT_API_KEY'):
+                config['text'] = {
+                    'active_provider': text_provider,
+                    'providers': {
+                        text_provider: {
+                            'type': 'openai_compatible' if text_provider == 'openai' else 'google_gemini',
+                            'api_key': os.getenv('TEXT_API_KEY'),
+                            'base_url': os.getenv('TEXT_BASE_URL', 'https://apipro.maynor1024.live/v1'),
+                            'model': os.getenv('TEXT_MODEL', 'gpt-4o')
+                        }
                     }
                 }
-            }
+
+        if 'image' not in config:
+            image_provider = os.getenv('IMAGE_PROVIDER', 'gemini')
+            if os.getenv('IMAGE_API_KEY'):
+                config['image'] = {
+                    'active_provider': image_provider,
+                    'providers': {
+                        image_provider: {
+                            'type': 'image_api',
+                            'api_key': os.getenv('IMAGE_API_KEY'),
+                            'base_url': os.getenv('IMAGE_BASE_URL', 'https://apipro.maynor1024.live/v1'),
+                            'model': os.getenv('IMAGE_MODEL', 'gemini-3-pro-image-preview'),
+                            'high_concurrency': False
+                        }
+                    }
+                }
 
         return config
 

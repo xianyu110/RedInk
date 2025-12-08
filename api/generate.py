@@ -62,14 +62,16 @@ class handler(BaseHTTPRequestHandler):
             model = self.headers.get('X-Model')
             high_concurrency = self.headers.get('X-High-Concurrency', 'false').lower() == 'true'
             
-            # 如果用户提供了配置，临时设置环境变量
+            # 如果用户提供了配置，设置请求级别的配置
             if api_key:
-                os.environ['IMAGE_API_KEY'] = api_key
-                if base_url:
-                    os.environ['IMAGE_BASE_URL'] = base_url
-                if model:
-                    os.environ['IMAGE_MODEL'] = model
-                os.environ['IMAGE_PROVIDER'] = 'gemini'  # 默认使用 Gemini
+                from backend.request_config import set_request_config
+                set_request_config(
+                    api_key=api_key,
+                    base_url=base_url,
+                    model=model,
+                    service='image',
+                    high_concurrency=high_concurrency
+                )
 
             logger.info(f"开始图片生成任务: {task_id}, 共 {len(pages)} 页")
             image_service = get_image_service()

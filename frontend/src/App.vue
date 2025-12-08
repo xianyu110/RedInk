@@ -22,6 +22,11 @@
         </RouterLink>
       </nav>
 
+      <!-- 帮助引导按钮 -->
+      <div class="help-area">
+        <TutorialTrigger @start-tutorial="handleStartTutorial" />
+      </div>
+
       <!-- 用户信息区域 -->
       <div class="user-area">
         <UserMenu v-if="isAuthenticated" />
@@ -52,36 +57,77 @@
 
     <!-- 登录模态框 -->
     <LoginModal v-if="showLogin" @close="showLogin = false" />
+
+    <!-- 教程管理器 -->
+    <TutorialManager ref="tutorialManagerRef" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { RouterView, RouterLink } from 'vue-router'
-import { onMounted, computed, ref } from 'vue'
+import { onMounted, computed, ref, watch } from 'vue'
 import { setupAutoSave } from './stores/generator'
 import { useAuthStore } from './stores/auth'
+import { useLocalConfigStore } from './stores/localConfig'
 import UserMenu from './components/auth/UserMenu.vue'
 import LoginModal from './components/auth/LoginModal.vue'
+import TutorialManager from './components/tutorial/TutorialManager.vue'
+import TutorialTrigger from './components/tutorial/TutorialTrigger.vue'
 
 const authStore = useAuthStore()
+const localConfigStore = useLocalConfigStore()
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const showLogin = ref(false)
+const tutorialManagerRef = ref<InstanceType<typeof TutorialManager> | null>(null)
+
+// 处理启动教程
+const handleStartTutorial = (tutorialId: string) => {
+  if (tutorialManagerRef.value) {
+    tutorialManagerRef.value.startTutorial(tutorialId)
+  }
+}
 
 // 启用自动保存到 localStorage
 onMounted(() => {
   setupAutoSave()
   // 初始化认证状态
   authStore.init()
+  // 初始化用户偏好设置
+  localConfigStore.initPreferences()
 
   // 监听登录事件
   window.addEventListener('show-login', () => {
     showLogin.value = true
   })
+
+  // 如果用户已登录，检查是否需要显示欢迎引导
+  if (isAuthenticated.value && tutorialManagerRef.value) {
+    setTimeout(() => {
+      tutorialManagerRef.value?.checkWelcomeTutorial()
+    }, 1500)
+  }
+})
+
+// 监听用户登录状态变化
+watch(isAuthenticated, (newValue) => {
+  if (newValue && tutorialManagerRef.value) {
+    // 用户刚刚登录，延迟显示欢迎引导
+    setTimeout(() => {
+      tutorialManagerRef.value?.autoTriggerTutorial('login')
+    }, 1000)
+  }
 })
 </script>
 
 <style>
+.help-area {
+  margin-top: 20px;
+  padding: 10px 0;
+  display: flex;
+  justify-content: center;
+}
+
 .user-area {
   margin-top: auto;
   padding-top: 20px;

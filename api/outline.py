@@ -45,17 +45,18 @@ class handler(BaseHTTPRequestHandler):
             base_url = self.headers.get('X-Base-URL')
             model = self.headers.get('X-Model')
             
-            # 如果用户提供了配置，临时设置环境变量
-            if api_key:
-                os.environ['TEXT_API_KEY'] = api_key
-                if base_url:
-                    os.environ['TEXT_BASE_URL'] = base_url
-                if model:
-                    os.environ['TEXT_MODEL'] = model
-                os.environ['TEXT_PROVIDER'] = 'openai'  # 默认使用 OpenAI 兼容接口
-
             # 动态导入服务（避免启动时导入失败）
             try:
+                # 如果用户提供了配置，设置请求级别的配置
+                if api_key:
+                    from backend.request_config import set_request_config
+                    set_request_config(
+                        api_key=api_key,
+                        base_url=base_url,
+                        model=model,
+                        service='text'
+                    )
+                
                 from backend.services.outline import get_outline_service
                 outline_service = get_outline_service()
                 result = outline_service.generate_outline(topic, images if images else None)

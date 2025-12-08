@@ -4,7 +4,14 @@ import { ConfigStorage, loadEnvDefaults, type FrontendConfig, type ProviderConfi
 export const useLocalConfigStore = defineStore('localConfig', {
   state: () => ({
     config: loadEnvDefaults() as FrontendConfig,
-    initialized: false
+    initialized: false,
+    // 用户偏好设置
+    preferences: {
+      completedTutorials: [] as string[],
+      showTutorialOnLogin: true,
+      theme: 'light' as 'light' | 'dark',
+      language: 'zh-CN'
+    }
   }),
 
   getters: {
@@ -182,6 +189,60 @@ export const useLocalConfigStore = defineStore('localConfig', {
       return Object.keys(config.providers).filter(name =>
         config.providers[name].apiKey && config.providers[name].apiKey.length > 0
       )
+    },
+
+    // 更新用户偏好设置
+    updatePreferences(newPreferences: Partial<typeof this.preferences>) {
+      this.preferences = {
+        ...this.preferences,
+        ...newPreferences
+      }
+      this.savePreferences()
+    },
+
+    // 标记教程为已完成
+    markTutorialCompleted(tutorialId: string) {
+      if (!this.preferences.completedTutorials.includes(tutorialId)) {
+        this.preferences.completedTutorials.push(tutorialId)
+        this.savePreferences()
+      }
+    },
+
+    // 检查教程是否已完成
+    isTutorialCompleted(tutorialId: string): boolean {
+      return this.preferences.completedTutorials.includes(tutorialId)
+    },
+
+    // 重置所有教程完成状态
+    resetTutorials() {
+      this.preferences.completedTutorials = []
+      this.savePreferences()
+    },
+
+    // 保存偏好设置到 localStorage
+    savePreferences() {
+      localStorage.setItem('redink-preferences', JSON.stringify(this.preferences))
+    },
+
+    // 从 localStorage 加载偏好设置
+    loadPreferences() {
+      const saved = localStorage.getItem('redink-preferences')
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          this.preferences = {
+            ...this.preferences,
+            ...parsed
+          }
+        } catch (error) {
+          console.error('Failed to load preferences:', error)
+        }
+      }
+    },
+
+    // 初始化偏好设置
+    initPreferences() {
+      this.loadPreferences()
     }
   }
 })
