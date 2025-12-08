@@ -167,9 +167,21 @@ export async function generateImageWithAI(
 
     if (isGeminiNative) {
       // Gemini 原生 API 格式
-      const apiUrl = apiConfig.baseURL.includes(':generateContent')
-        ? apiConfig.baseURL
-        : `${apiConfig.baseURL}/models/${apiConfig.model || 'gemini-3-pro-image-preview'}:generateContent`
+      let apiUrl: string
+      if (apiConfig.baseURL.includes(':generateContent')) {
+        apiUrl = apiConfig.baseURL
+      } else {
+        // 确保 baseURL 包含 /v1beta
+        const baseUrl = apiConfig.baseURL.endsWith('/v1beta') 
+          ? apiConfig.baseURL 
+          : apiConfig.baseURL.includes('/v1beta')
+            ? apiConfig.baseURL
+            : `${apiConfig.baseURL}/v1beta`
+        
+        apiUrl = `${baseUrl}/models/${apiConfig.model || 'gemini-3-pro-image-preview'}:generateContent`
+      }
+      
+      console.log('Gemini Native API URL:', apiUrl)
       
       const response = await fetch(`${apiUrl}?key=${apiConfig.apiKey}`, {
         method: 'POST',
