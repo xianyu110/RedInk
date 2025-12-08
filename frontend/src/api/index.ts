@@ -1,6 +1,28 @@
 import axios from 'axios'
+import { useLocalConfigStore } from '@/stores/localConfig'
 
 const API_BASE_URL = '/api'
+
+// 获取请求头（包含本地配置的 API Key）
+function getHeaders(service: 'text' | 'image') {
+  const localConfigStore = useLocalConfigStore()
+  const apiConfig = localConfigStore.getApiConfig(service)
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  
+  if (apiConfig) {
+    headers['X-API-Key'] = apiConfig.apiKey
+    headers['X-Base-URL'] = apiConfig.baseURL
+    headers['X-Model'] = apiConfig.model
+    if (service === 'image' && apiConfig.highConcurrency !== undefined) {
+      headers['X-High-Concurrency'] = String(apiConfig.highConcurrency)
+    }
+  }
+  
+  return headers
+}
 
 export interface Page {
   index: number
@@ -56,9 +78,11 @@ export async function generateOutline(
   }
 
   // 无图片，使用 JSON
-  const response = await axios.post<OutlineResponse>(`${API_BASE_URL}/outline`, {
-    topic
-  })
+  const response = await axios.post<OutlineResponse>(
+    `${API_BASE_URL}/outline`,
+    { topic },
+    { headers: getHeaders('text') }
+  )
   return response.data
 }
 
@@ -317,9 +341,7 @@ export async function generateImagesPost(
 
     const response = await fetch(`${API_BASE_URL}/generate`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders('image'),
       body: JSON.stringify({
         pages,
         task_id: taskId,

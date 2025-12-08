@@ -40,6 +40,20 @@ class handler(BaseHTTPRequestHandler):
                         img_b64 = img_b64.split(',')[1]
                     images.append(base64.b64decode(img_b64))
 
+            # 从请求头获取用户配置的 API Key
+            api_key = self.headers.get('X-API-Key')
+            base_url = self.headers.get('X-Base-URL')
+            model = self.headers.get('X-Model')
+            
+            # 如果用户提供了配置，临时设置环境变量
+            if api_key:
+                os.environ['TEXT_API_KEY'] = api_key
+                if base_url:
+                    os.environ['TEXT_BASE_URL'] = base_url
+                if model:
+                    os.environ['TEXT_MODEL'] = model
+                os.environ['TEXT_PROVIDER'] = 'openai'  # 默认使用 OpenAI 兼容接口
+
             # 动态导入服务（避免启动时导入失败）
             try:
                 from backend.services.outline import get_outline_service

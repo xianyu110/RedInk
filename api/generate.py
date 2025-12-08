@@ -48,12 +48,28 @@ class handler(BaseHTTPRequestHandler):
             if not pages:
                 self.send_response(400)
                 self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 self.wfile.write(json.dumps({
                     'success': False,
                     'error': '参数错误：pages 不能为空'
                 }, ensure_ascii=False).encode('utf-8'))
                 return
+
+            # 从请求头获取用户配置的 API Key
+            api_key = self.headers.get('X-API-Key')
+            base_url = self.headers.get('X-Base-URL')
+            model = self.headers.get('X-Model')
+            high_concurrency = self.headers.get('X-High-Concurrency', 'false').lower() == 'true'
+            
+            # 如果用户提供了配置，临时设置环境变量
+            if api_key:
+                os.environ['IMAGE_API_KEY'] = api_key
+                if base_url:
+                    os.environ['IMAGE_BASE_URL'] = base_url
+                if model:
+                    os.environ['IMAGE_MODEL'] = model
+                os.environ['IMAGE_PROVIDER'] = 'gemini'  # 默认使用 Gemini
 
             logger.info(f"开始图片生成任务: {task_id}, 共 {len(pages)} 页")
             image_service = get_image_service()
@@ -63,6 +79,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'text/event-stream')
             self.send_header('Cache-Control', 'no-cache')
             self.send_header('X-Accel-Buffering', 'no')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
 
             # 流式发送事件
@@ -83,6 +100,7 @@ class handler(BaseHTTPRequestHandler):
             logger.error(f"图片生成异常: {str(e)}")
             self.send_response(500)
             self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps({
                 'success': False,
