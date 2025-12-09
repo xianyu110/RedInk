@@ -90,6 +90,10 @@
             <div class="card-body">
               <!-- API Key 使用全局配置，不再单独显示 -->
               <div class="config-item">
+                <label>API 端点:</label>
+                <span class="config-value readonly">{{ provider.baseURL || '默认' }}</span>
+              </div>
+              <div class="config-item">
                 <label>模型:</label>
                 <span class="config-value">{{ provider.model || '默认' }}</span>
               </div>
@@ -132,6 +136,10 @@
             </div>
             <div class="card-body">
               <!-- API Key 使用全局配置，不再单独显示 -->
+              <div class="config-item">
+                <label>API 端点:</label>
+                <span class="config-value readonly">{{ provider.baseURL || '默认' }}</span>
+              </div>
               <div class="config-item">
                 <label>模型:</label>
                 <span class="config-value">{{ provider.model || '默认' }}</span>
@@ -691,6 +699,16 @@ input:checked + .slider:before {
 .config-value {
   color: #333;
   font-weight: 500;
+}
+
+.config-value.readonly {
+  color: #666;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 13px;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 /* 配置操作 */

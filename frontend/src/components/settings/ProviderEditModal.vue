@@ -24,22 +24,24 @@
           </div>
         </div>
 
-        <!-- API 端点 - 已隐藏，使用默认端点 -->
-        <!-- <div class="form-group">
+        <!-- API 端点 - 只读显示 -->
+        <div class="form-group">
           <label for="baseURL">
-            API 端点
+            API 端点 <span class="readonly-badge">只读</span>
           </label>
           <input
             id="baseURL"
             v-model="localConfig.baseURL"
             type="url"
             placeholder="https://api.example.com/v1"
-            class="form-input"
+            class="form-input readonly-input"
+            readonly
+            disabled
           />
           <p class="form-help">
-            留空使用默认端点
+            API 端点已预设，无需修改
           </p>
-        </div> -->
+        </div>
 
         <!-- 模型 -->
         <div class="form-group">
@@ -460,6 +462,30 @@ initCustomParams()
   font-size: 12px;
   color: #6b7280;
   margin-top: 0.25rem;
+}
+
+.readonly-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #e5e7eb;
+  color: #6b7280;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: 8px;
+}
+
+.readonly-input {
+  background: #f3f4f6 !important;
+  color: #6b7280 !important;
+  cursor: not-allowed !important;
+  border-color: #e5e7eb !important;
+}
+
+.readonly-input:focus {
+  box-shadow: none !important;
+  border-color: #e5e7eb !important;
 }
 
 .input-group {
