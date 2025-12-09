@@ -24,13 +24,42 @@
       <div class="notice-content">
         <p><strong>本地配置说明：</strong></p>
         <ul>
-          <li>API Keys 将加密存储在浏览器本地</li>
+          <li>API Key 将加密存储在浏览器本地</li>
           <li>配置仅在当前浏览器有效，不会同步</li>
           <li>启用后将优先使用本地配置而非后端配置</li>
           <li>建议在个人电脑上使用，公共设备请谨慎启用</li>
         </ul>
       </div>
     </div>
+
+    <!-- 全局 API Key -->
+    <template v-if="useLocalConfig">
+      <div class="global-api-key-section">
+        <h3 class="section-subtitle">API 密钥配置</h3>
+        <p class="section-help">输入一次 API Key，所有服务自动使用</p>
+        <div class="api-key-input-group">
+          <div class="input-wrapper">
+            <input
+              v-model="globalApiKey"
+              :type="showGlobalApiKey ? 'text' : 'password'"
+              placeholder="请输入 API Key"
+              class="api-key-input"
+              @input="handleGlobalApiKeyChange"
+            />
+            <button
+              type="button"
+              class="toggle-visibility-btn"
+              @click="showGlobalApiKey = !showGlobalApiKey"
+            >
+              {{ showGlobalApiKey ? '👁️' : '👁️‍🗨️' }}
+            </button>
+          </div>
+          <div v-if="globalApiKey" class="api-key-status">
+            ✓ 已配置 ({{ maskApiKey(globalApiKey) }})
+          </div>
+        </div>
+      </div>
+    </template>
 
     <!-- 配置详情 -->
     <template v-if="useLocalConfig">
@@ -59,16 +88,7 @@
               </div>
             </div>
             <div class="card-body">
-              <div class="config-item">
-                <label>API Key:</label>
-                <span class="config-value">
-                  {{ provider.apiKey ? '已配置 (' + maskApiKey(provider.apiKey) + ')' : '未配置' }}
-                </span>
-              </div>
-              <div class="config-item">
-                <label>API 端点:</label>
-                <span class="config-value">{{ provider.baseURL || '默认' }}</span>
-              </div>
+              <!-- API Key 使用全局配置，不再单独显示 -->
               <div class="config-item">
                 <label>模型:</label>
                 <span class="config-value">{{ provider.model || '默认' }}</span>
@@ -111,16 +131,7 @@
               </div>
             </div>
             <div class="card-body">
-              <div class="config-item">
-                <label>API Key:</label>
-                <span class="config-value">
-                  {{ provider.apiKey ? '已配置 (' + maskApiKey(provider.apiKey) + ')' : '未配置' }}
-                </span>
-              </div>
-              <div class="config-item">
-                <label>API 端点:</label>
-                <span class="config-value">{{ provider.baseURL || '默认' }}</span>
-              </div>
+              <!-- API Key 使用全局配置，不再单独显示 -->
               <div class="config-item">
                 <label>模型:</label>
                 <span class="config-value">{{ provider.model || '默认' }}</span>
@@ -210,6 +221,8 @@ const editingProvider = ref<{
 } | null>(null)
 
 const importInput = ref<HTMLInputElement>()
+const globalApiKey = ref('')
+const showGlobalApiKey = ref(false)
 
 const config = computed(() => localConfigStore.config)
 const useLocalConfig = computed({
@@ -219,7 +232,13 @@ const useLocalConfig = computed({
 
 onMounted(() => {
   localConfigStore.init()
+  globalApiKey.value = localConfigStore.config.globalApiKey || ''
 })
+
+// 处理全局 API Key 变化
+function handleGlobalApiKeyChange() {
+  localConfigStore.setGlobalApiKey(globalApiKey.value)
+}
 
 // 切换本地配置
 function toggleLocalConfig() {
@@ -270,10 +289,9 @@ function addProvider(service: 'text' | 'image') {
     return
   }
 
-  // 创建新的提供商配置
+  // 创建新的提供商配置（不再需要 API Key）
   const defaultConfig: ProviderConfig = service === 'text'
     ? {
-        apiKey: '',
         baseURL: name === 'openai' ? 'https://apipro.maynor1024.live/v1' :
                  name === 'gemini' ? 'https://apipro.maynor1024.live' :
                  name === 'claude' ? 'https://apipro.maynor1024.live/v1' : '',
@@ -282,7 +300,6 @@ function addProvider(service: 'text' | 'image') {
                name === 'claude' ? 'claude-3-sonnet' : ''
       }
     : {
-        apiKey: '',
         baseURL: name === 'openai' ? 'https://apipro.maynor1024.live/v1' :
                  name === 'gemini' ? 'https://apipro.maynor1024.live' : '',
         model: name === 'openai' ? 'dall-e-3' :
@@ -379,6 +396,7 @@ function getProviderDisplayName(name: string): string {
   const displayNames: Record<string, string> = {
     'openai': 'OpenAI',
     'gemini': 'Google Gemini',
+    'gemini-pro': 'Gemini 3 Pro',
     'claude': 'Anthropic Claude',
     'dall-e': 'DALL-E',
     'midjourney': 'Midjourney',
@@ -473,6 +491,85 @@ input:checked + .slider:before {
   background: #f8f9fa;
   border-radius: 8px;
   margin-bottom: 1.5rem;
+}
+
+/* 全局 API Key 部分 */
+.global-api-key-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 2rem;
+  color: white;
+}
+
+.section-subtitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: white;
+}
+
+.section-help {
+  font-size: 14px;
+  margin: 0 0 16px 0;
+  opacity: 0.9;
+}
+
+.api-key-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.input-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.api-key-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.2s;
+}
+
+.api-key-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.api-key-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.toggle-visibility-btn {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 18px;
+}
+
+.toggle-visibility-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.api-key-status {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 6px;
+  display: inline-block;
 }
 
 .notice-icon {

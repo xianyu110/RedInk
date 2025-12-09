@@ -29,6 +29,32 @@
       </div>
     </div>
 
+    <!-- 使用流程提示 -->
+    <div class="usage-guide">
+      <h3>新用户使用流程</h3>
+      <div class="guide-steps">
+        <a href="https://apipro.maynor1024.live/register" target="_blank" class="guide-step">
+          <span class="step-number">1</span>
+          <span class="step-text">注册</span>
+        </a>
+        <span class="step-arrow">→</span>
+        <a href="https://apipro.maynor1024.live/login" target="_blank" class="guide-step">
+          <span class="step-number">2</span>
+          <span class="step-text">登录</span>
+        </a>
+        <span class="step-arrow">→</span>
+        <a href="https://apipro.maynor1024.live/console/topup" target="_blank" class="guide-step">
+          <span class="step-number">3</span>
+          <span class="step-text">充值 (新用户可试用)</span>
+        </a>
+        <span class="step-arrow">→</span>
+        <a href="https://apipro.maynor1024.live/console/token" target="_blank" class="guide-step">
+          <span class="step-number">4</span>
+          <span class="step-text">获取令牌</span>
+        </a>
+      </div>
+    </div>
+
     <!-- 版权信息 -->
     <div class="page-footer">
       <div class="footer-navigation">
@@ -167,6 +193,73 @@ async function handleGenerate() {
   font-size: 16px;
   color: var(--text-sub);
   margin-top: 12px;
+}
+
+/* 使用流程提示 */
+.usage-guide {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.usage-guide h3 {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+}
+
+.guide-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.guide-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--primary, #ff2442) 0%, #ff6b6b 100%);
+  color: white;
+  border-radius: 100px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(255, 36, 66, 0.2);
+}
+
+.guide-step:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 36, 66, 0.3);
+}
+
+.step-number {
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.step-text {
+  white-space: nowrap;
+}
+
+.step-arrow {
+  font-size: 20px;
+  color: var(--primary, #ff2442);
+  font-weight: 700;
 }
 
 /* Page Footer */

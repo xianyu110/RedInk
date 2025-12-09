@@ -41,6 +41,8 @@ export interface ProviderConfig {
 }
 
 export interface FrontendConfig {
+  // 全局 API Key（所有提供商共享）
+  globalApiKey: string
   // 文本生成配置
   textGeneration: {
     activeProvider: string
@@ -63,18 +65,21 @@ export interface FrontendConfig {
 }
 
 const DEFAULT_CONFIG: FrontendConfig = {
+  globalApiKey: '',
   textGeneration: {
     activeProvider: 'openai',
     providers: {
       openai: {
-        apiKey: '',
         baseURL: 'https://apipro.maynor1024.live/v1',
         model: 'gpt-4o'
       },
       gemini: {
-        apiKey: '',
         baseURL: 'https://apipro.maynor1024.live',
         model: 'gemini-2.0-flash'
+      },
+      'gemini-pro': {
+        baseURL: 'https://apipro.maynor1024.live',
+        model: 'gemini-3-pro-preview'
       }
     }
   },
@@ -82,13 +87,11 @@ const DEFAULT_CONFIG: FrontendConfig = {
     activeProvider: 'gemini',
     providers: {
       gemini: {
-        apiKey: '',
         baseURL: 'https://apipro.maynor1024.live',
         model: 'gemini-3-pro-image-preview',
         highConcurrency: false
       },
       openai: {
-        apiKey: '',
         baseURL: 'https://apipro.maynor1024.live/v1',
         model: 'dall-e-3',
         highConcurrency: false
@@ -113,7 +116,12 @@ export class ConfigStorage {
       // 创建配置副本，加密敏感信息
       const configToSave = JSON.parse(JSON.stringify(config))
 
-      // 加密 API Keys
+      // 加密全局 API Key
+      if (configToSave.globalApiKey) {
+        configToSave.globalApiKey = xorEncrypt(configToSave.globalApiKey)
+      }
+
+      // 加密 API Keys（兼容旧配置）
       for (const providerConfig of Object.values(configToSave.textGeneration.providers)) {
         if (providerConfig.apiKey) {
           providerConfig.apiKey = xorEncrypt(providerConfig.apiKey)
@@ -144,7 +152,14 @@ export class ConfigStorage {
 
       const config = JSON.parse(stored)
 
-      // 解密 API Keys
+      // 解密全局 API Key
+      if (config.globalApiKey) {
+        config.globalApiKey = xorDecrypt(config.globalApiKey)
+      } else {
+        config.globalApiKey = ''
+      }
+
+      // 解密 API Keys（兼容旧配置）
       for (const providerConfig of Object.values(config.textGeneration.providers)) {
         if (providerConfig.apiKey) {
           providerConfig.apiKey = xorDecrypt(providerConfig.apiKey)

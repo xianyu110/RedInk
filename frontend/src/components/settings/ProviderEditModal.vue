@@ -12,34 +12,20 @@
       </div>
 
       <div class="modal-body">
-        <!-- API Key -->
+        <!-- API Key 使用全局配置，不再单独配置 -->
         <div class="form-group">
-          <label for="apiKey">
-            API Key <span class="required">*</span>
-          </label>
-          <div class="input-group">
-            <input
-              id="apiKey"
-              v-model="localConfig.apiKey"
-              :type="showApiKey ? 'text' : 'password'"
-              placeholder="请输入 API Key"
-              class="form-input"
-            />
-            <button
-              type="button"
-              class="input-action"
-              @click="showApiKey = !showApiKey"
-            >
-              {{ showApiKey ? '隐藏' : '显示' }}
-            </button>
+          <div class="info-notice">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span>API Key 已在全局配置中统一设置，此处仅配置模型和其他参数</span>
           </div>
-          <p class="form-help">
-            API Key 将加密存储在本地，不会上传到服务器
-          </p>
         </div>
 
-        <!-- API 端点 -->
-        <div class="form-group">
+        <!-- API 端点 - 已隐藏，使用默认端点 -->
+        <!-- <div class="form-group">
           <label for="baseURL">
             API 端点
           </label>
@@ -53,7 +39,7 @@
           <p class="form-help">
             留空使用默认端点
           </p>
-        </div>
+        </div> -->
 
         <!-- 模型 -->
         <div class="form-group">
@@ -78,7 +64,8 @@
                 <option value="gpt-4">GPT-4</option>
                 <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
               </optgroup>
-              <optgroup v-if="name === 'gemini'" label="Gemini 模型">
+              <optgroup v-if="name === 'gemini' || name === 'gemini-pro'" label="Gemini 模型">
+                <option value="gemini-3-pro-preview">Gemini 3 Pro Preview</option>
                 <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
                 <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
                 <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
@@ -145,13 +132,13 @@
           </button>
         </div>
 
-        <!-- 测试配置 -->
-        <div class="form-group">
+        <!-- 测试配置 - 已移除，因为使用全局 API Key -->
+        <!-- <div class="form-group">
           <button
             type="button"
             class="btn btn-outline"
             @click="testConnection"
-            :disabled="testing || !localConfig.apiKey"
+            :disabled="testing"
           >
             <svg
               v-if="testing"
@@ -170,7 +157,7 @@
           <div v-if="testResult" class="test-result" :class="testResult.success ? 'success' : 'error'">
             {{ testResult.message }}
           </div>
-        </div>
+        </div> -->
       </div>
 
       <div class="modal-footer">
@@ -185,7 +172,6 @@
           type="button"
           class="btn btn-primary"
           @click="handleSave"
-          :disabled="!localConfig.apiKey"
         >
           保存配置
         </button>
@@ -325,14 +311,8 @@ async function testConnection() {
 
 // 保存配置
 function handleSave() {
-  if (!localConfig.apiKey) {
-    showToast('请输入 API Key', 'warning')
-    return
-  }
-
-  // 合并自定义参数
+  // 合并自定义参数（不再需要 API Key）
   const finalConfig: ProviderConfig = {
-    apiKey: localConfig.apiKey,
     baseURL: localConfig.baseURL,
     model: localConfig.model,
     highConcurrency: localConfig.highConcurrency
@@ -357,6 +337,7 @@ function getProviderDisplayName(name: string): string {
   const displayNames: Record<string, string> = {
     'openai': 'OpenAI',
     'gemini': 'Google Gemini',
+    'gemini-pro': 'Gemini 3 Pro',
     'claude': 'Anthropic Claude',
     'dall-e': 'DALL-E',
     'midjourney': 'Midjourney',
@@ -443,6 +424,24 @@ initCustomParams()
 /* 表单样式 */
 .form-group {
   margin-bottom: 1.5rem;
+}
+
+.info-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  color: #1e40af;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.info-notice svg {
+  flex-shrink: 0;
+  color: #3b82f6;
 }
 
 .form-group label {

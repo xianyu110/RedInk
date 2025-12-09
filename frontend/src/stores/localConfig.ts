@@ -156,20 +156,28 @@ export const useLocalConfigStore = defineStore('localConfig', {
 
       const provider = config.providers[config.activeProvider]
 
-      if (!provider || !provider.apiKey) {
+      // 优先使用全局 API Key，如果没有则使用提供商特定的 API Key
+      const apiKey = this.config.globalApiKey || provider?.apiKey || ''
+
+      if (!apiKey) {
         return null
       }
 
       return {
-        apiKey: provider.apiKey,
-        baseURL: provider.baseURL || '',
-        model: provider.model || '',
-        highConcurrency: provider.highConcurrency || false
+        apiKey: apiKey,
+        baseURL: provider?.baseURL || '',
+        model: provider?.model || '',
+        highConcurrency: provider?.highConcurrency || false
       }
     },
 
     // 检查 API Key 是否已配置
     hasApiKey(service: 'text' | 'image', providerName?: string): boolean {
+      // 如果有全局 API Key，则认为已配置
+      if (this.config.globalApiKey) {
+        return true
+      }
+
       const config = service === 'text'
         ? this.config.textGeneration
         : this.config.imageGeneration
@@ -182,6 +190,14 @@ export const useLocalConfigStore = defineStore('localConfig', {
 
     // 获取所有已配置的提供商名称
     getConfiguredProviders(service: 'text' | 'image'): string[] {
+      // 如果有全局 API Key，返回所有提供商
+      if (this.config.globalApiKey) {
+        const config = service === 'text'
+          ? this.config.textGeneration
+          : this.config.imageGeneration
+        return Object.keys(config.providers)
+      }
+
       const config = service === 'text'
         ? this.config.textGeneration
         : this.config.imageGeneration
@@ -189,6 +205,12 @@ export const useLocalConfigStore = defineStore('localConfig', {
       return Object.keys(config.providers).filter(name =>
         config.providers[name].apiKey && config.providers[name].apiKey.length > 0
       )
+    },
+
+    // 设置全局 API Key
+    setGlobalApiKey(apiKey: string) {
+      this.config.globalApiKey = apiKey
+      this.save()
     },
 
     // 更新用户偏好设置

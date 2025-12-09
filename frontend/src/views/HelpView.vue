@@ -5,13 +5,69 @@
       <p class="page-subtitle">了解如何使用 RedInk 创作精美的小红书内容</p>
     </div>
 
-    <!-- 快速开始 -->
+    <!-- 新用户使用流程 -->
     <section class="help-section">
       <h2 class="section-title">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
         </svg>
-        快速开始
+        本站使用流程
+      </h2>
+      <div class="usage-flow">
+        <div class="flow-card">
+          <div class="flow-number">1</div>
+          <div class="flow-content">
+            <h3>注册账号</h3>
+            <p>前往注册页面创建您的账号</p>
+            <a href="https://apipro.maynor1024.live/register" target="_blank" class="flow-link">
+              立即注册 →
+            </a>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-card">
+          <div class="flow-number">2</div>
+          <div class="flow-content">
+            <h3>登录系统</h3>
+            <p>使用注册的账号登录</p>
+            <a href="https://apipro.maynor1024.live/login" target="_blank" class="flow-link">
+              前往登录 →
+            </a>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-card">
+          <div class="flow-number">3</div>
+          <div class="flow-content">
+            <h3>充值余额</h3>
+            <p>新用户可免费试用</p>
+            <a href="https://apipro.maynor1024.live/console/topup" target="_blank" class="flow-link">
+              去充值 →
+            </a>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-card">
+          <div class="flow-number">4</div>
+          <div class="flow-content">
+            <h3>获取令牌</h3>
+            <p>获取 API 令牌开始使用</p>
+            <a href="https://apipro.maynor1024.live/console/token" target="_blank" class="flow-link">
+              获取令牌 →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 快速开始 -->
+    <section class="help-section">
+      <h2 class="section-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        快速教程
       </h2>
       <div class="tutorial-grid">
         <div
@@ -219,6 +275,80 @@ const startTutorial = (tutorialId: string) => {
   color: var(--primary, #ff2442);
 }
 
+/* 使用流程 */
+.usage-flow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 20px 0;
+}
+
+.flow-card {
+  flex: 1;
+  min-width: 200px;
+  background: white;
+  border: 2px solid #f0f0f0;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.flow-card:hover {
+  border-color: var(--primary, #ff2442);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(255, 36, 66, 0.15);
+}
+
+.flow-number {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--primary, #ff2442) 0%, #ff6b6b 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 auto 16px;
+}
+
+.flow-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.flow-content p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.flow-link {
+  display: inline-block;
+  color: var(--primary, #ff2442);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.flow-link:hover {
+  color: #ff6b6b;
+  text-decoration: underline;
+}
+
+.flow-arrow {
+  font-size: 32px;
+  color: var(--primary, #ff2442);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 /* 教程卡片 */
 .tutorial-grid {
   display: grid;
@@ -397,6 +527,14 @@ const startTutorial = (tutorialId: string) => {
 }
 
 @media (max-width: 768px) {
+  .usage-flow {
+    flex-direction: column;
+  }
+  
+  .flow-arrow {
+    transform: rotate(90deg);
+  }
+  
   .tutorial-grid {
     grid-template-columns: 1fr;
   }
