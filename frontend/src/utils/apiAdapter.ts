@@ -76,7 +76,7 @@ export const API_PROVIDERS: Record<string, ApiProvider> = {
   },
 
   // DALL-E (OpenAI)
-  dall-e: {
+  'dall-e': {
     name: 'DALL-E',
     type: 'image',
     endpoints: {
@@ -140,7 +140,7 @@ export const API_PROVIDERS: Record<string, ApiProvider> = {
       supportsReference: true,
       imageSizes: ['1024x1024', '1024x1365', '2048x2048']
     }
-  }
+  },
 }
 
 /**
