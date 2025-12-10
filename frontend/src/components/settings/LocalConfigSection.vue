@@ -69,13 +69,10 @@
         <div class="api-endpoint-config">
           <div class="form-group">
             <label>API 端点地址</label>
-            <input
-              type="text"
-              v-model="endpointUrl"
-              class="form-input"
-              placeholder="例如: https://api.openai.com/v1"
-            />
-            <span class="form-hint">系统会自动检测并选择合适的 API 端点，无需手动选择</span>
+            <div class="endpoint-display">
+              https://apipro.maynor1024.live/v1
+            </div>
+            <span class="form-hint">系统已配置固定端点，无需手动选择</span>
           </div>
 
           <div class="test-section">
@@ -125,7 +122,8 @@
             </h4>
             <div class="model-select-group">
               <select v-model="textModel" @change="updateTextModel" class="model-select">
-                <option value="gpt-4">GPT-4 (推荐)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (推荐)</option>
+                <option value="gpt-4">GPT-4</option>
                 <option value="gpt-4-turbo">GPT-4 Turbo</option>
                 <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                 <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
@@ -232,7 +230,7 @@ const globalApiKey = ref('')
 const showGlobalApiKey = ref(false)
 
 // 模型配置
-const textModel = ref('gpt-4')
+const textModel = ref('gemini-2.5-flash')
 const imageModel = ref('jimeng-4.5')
 
 // 移除 editingProvider，不再需要编辑对话框
@@ -247,13 +245,17 @@ onMounted(() => {
   localConfigStore.init()
   globalApiKey.value = localConfigStore.config.globalApiKey || ''
 
-  // 初始化 endpoint URL
-  const activeTextProvider = localConfigStore.config.textGeneration.providers[
-    localConfigStore.config.textGeneration.activeProvider
-  ]
-  if (activeTextProvider?.baseURL) {
-    endpointUrl.value = activeTextProvider.baseURL
-  }
+  // 设置固定的 endpoint URL
+  const fixedEndpoint = 'https://apipro.maynor1024.live/v1'
+  endpointUrl.value = fixedEndpoint
+
+  // 自动更新所有提供商的 baseURL
+  Object.keys(localConfigStore.config.textGeneration.providers).forEach(name => {
+    localConfigStore.updateTextProvider(name, { baseURL: fixedEndpoint })
+  })
+  Object.keys(localConfigStore.config.imageGeneration.providers).forEach(name => {
+    localConfigStore.updateImageProvider(name, { baseURL: fixedEndpoint })
+  })
 
   // 初始化模型值
   const textProvider = localConfigStore.config.textGeneration.providers[
@@ -265,9 +267,24 @@ onMounted(() => {
 
   if (textProvider?.model) {
     textModel.value = textProvider.model
+  } else {
+    // 如果没有模型设置，使用默认值
+    textModel.value = 'gemini-2.5-flash'
+    localConfigStore.updateTextProvider(
+      localConfigStore.config.textGeneration.activeProvider,
+      { model: 'gemini-2.5-flash' }
+    )
   }
+
   if (imageProvider?.model) {
     imageModel.value = imageProvider.model
+  } else {
+    // 如果没有模型设置，使用默认值
+    imageModel.value = 'jimeng-4.5'
+    localConfigStore.updateImageProvider(
+      localConfigStore.config.imageGeneration.activeProvider,
+      { model: 'jimeng-4.5' }
+    )
   }
 })
 
@@ -280,21 +297,7 @@ const hasImageService = computed(() => {
   return !!(globalApiKey.value && endpointUrl.value)
 })
 
-// 监听 endpoint URL 变化
-watch(endpointUrl, (newUrl) => {
-  if (newUrl) {
-    // 更新所有提供商的 baseURL
-    Object.keys(config.value.textGeneration.providers).forEach(name => {
-      localConfigStore.updateTextProvider(name, { baseURL: newUrl })
-    })
-    Object.keys(config.value.imageGeneration.providers).forEach(name => {
-      localConfigStore.updateImageProvider(name, { baseURL: newUrl })
-    })
-
-    // 清除缓存以便重新检测
-    clearEndpointCache()
-  }
-})
+// API 端点现在是固定的，不需要监听变化
 
 // 测试连接
 async function testConnection() {
@@ -544,6 +547,16 @@ input:checked + .slider:before {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.endpoint-display {
+  padding: 12px 16px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #374151;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
 }
 
 .input-wrapper {
