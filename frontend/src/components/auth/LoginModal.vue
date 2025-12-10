@@ -2,7 +2,7 @@
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal">
       <div class="modal-header">
-        <h2>登录红墨 AI</h2>
+        <h2>{{ isLogin ? '登录' : '注册' }}红墨 AI</h2>
         <button class="modal-close" @click="$emit('close')">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -18,6 +18,24 @@
         </div>
 
         <form @submit.prevent="handleLogin" class="login-form">
+          <!-- 切换登录/注册 -->
+          <div v-if="authStore.isSupabaseEnabled" class="auth-switch">
+            <button
+              type="button"
+              :class="['switch-btn', { active: isLogin }]"
+              @click="isLogin = true"
+            >
+              登录
+            </button>
+            <button
+              type="button"
+              :class="['switch-btn', { active: !isLogin }]"
+              @click="isLogin = false"
+            >
+              注册
+            </button>
+          </div>
+
           <div class="form-group">
             <label for="email">邮箱地址</label>
             <input
@@ -31,22 +49,55 @@
             />
           </div>
 
+          <!-- 注册时显示用户名 -->
+          <div v-if="authStore.isSupabaseEnabled && !isLogin" class="form-group">
+            <label for="displayName">用户名（可选）</label>
+            <input
+              id="displayName"
+              v-model="displayName"
+              type="text"
+              placeholder="请输入您的用户名"
+              class="form-input"
+              :disabled="loading"
+            />
+          </div>
+
+          <!-- 密码输入框 -->
+          <div v-if="showPassword" class="form-group">
+            <label for="password">密码</label>
+            <input
+              id="password"
+              v-model="password"
+              type="password"
+              required
+              placeholder="至少6个字符，包含字母和数字"
+              class="form-input"
+              :disabled="loading"
+              minlength="6"
+            />
+            <p v-if="password && password.length < 6" class="password-hint">
+              密码至少需要6个字符
+            </p>
+          </div>
+
           <button
             type="submit"
             class="login-btn"
             :disabled="loading || !email"
           >
-            <span v-if="!loading">登录</span>
+            <span v-if="!loading">{{ isLogin ? '登录' : '注册' }}</span>
             <span v-else class="loading-text">
               <svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              登录中...
+              {{ isLogin ? '登录中...' : '注册中...' }}
             </span>
           </button>
 
-          <p v-if="error" class="error-message">{{ error }}</p>
+          <p v-if="error" :class="['message', error === 'success' ? 'success-message' : 'error-message']">
+            {{ error === 'success' ? (isLogin ? '请检查邮箱中的登录链接' : '注册成功，请检查邮箱验证链接') : error }}
+          </p>
         </form>
 
         <div class="features">
@@ -75,9 +126,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import { handleSupabaseError } from '@/utils/errorHandler'
 
 const emit = defineEmits<{
   close: []
@@ -87,8 +139,15 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const email = ref('')
+const password = ref('')
+const displayName = ref('')
 const loading = ref(false)
 const error = ref('')
+const isLogin = ref(true) // true=登录, false=注册
+
+// 判断是否显示密码输入框
+// Supabase 模式下，登录和注册都需要密码
+const showPassword = computed(() => authStore.isSupabaseEnabled)
 
 async function handleLogin() {
   if (!email.value) return
@@ -96,17 +155,69 @@ async function handleLogin() {
   loading.value = true
   error.value = ''
 
-  const result = await authStore.login(email.value)
+  try {
+    if (isLogin.value) {
+      // 登录
+      const result = await authStore.login(email.value, password.value || undefined)
 
-  if (result.success) {
-    emit('close')
-    // 如果有重定向地址，跳转到重定向地址
-    const redirect = router.currentRoute.value.query.redirect as string
-    if (redirect) {
-      router.push(redirect)
+      if (result.success) {
+        if (result.message) {
+          // OTP 登录需要提示用户查收邮件
+          error.value = result.message
+          error.value = 'success' // 使用特殊值表示成功消息
+        } else {
+          emit('close')
+          // 如果有重定向地址，跳转到重定向地址
+          const redirect = router.currentRoute.value.query.redirect as string
+          if (redirect) {
+            router.push(redirect)
+          }
+        }
+      } else {
+        // 根据不同的错误类型显示不同的提示
+        if (result.error?.includes('password')) {
+          error.value = '密码错误，请检查后重试'
+        } else if (result.error?.includes('Invalid login')) {
+          error.value = '邮箱或密码错误'
+        } else {
+          error.value = result.error || '登录失败，请重试'
+        }
+      }
+    } else {
+      // 注册
+      // 检查密码强度
+      if (password.value && password.value.length < 6) {
+        error.value = '密码至少需要6个字符'
+        loading.value = false
+        return
+      }
+
+      const result = await authStore.signUp(email.value, password.value || '', displayName.value || undefined)
+
+      if (result.success) {
+        error.value = result.message
+        error.value = 'success' // 使用特殊值表示成功消息
+        // 切换到登录模式
+        isLogin.value = true
+        password.value = ''
+        displayName.value = ''
+      } else {
+        // 根据不同的错误类型显示不同的提示
+        if (result.error?.includes('User already registered')) {
+          error.value = '该邮箱已注册，请直接登录'
+          isLogin.value = true
+        } else if (result.error?.includes('password')) {
+          error.value = '密码不符合要求，至少6个字符'
+        } else if (result.error?.includes('signup_disabled')) {
+          error.value = '注册功能已禁用'
+        } else {
+          error.value = result.error || '注册失败，请重试'
+        }
+      }
     }
-  } else {
-    error.value = result.error || '登录失败，请重试'
+  } catch (e: any) {
+    // 使用错误处理器
+    error.value = handleSupabaseError(e)
   }
 
   loading.value = false
@@ -224,6 +335,12 @@ async function handleLogin() {
   cursor: not-allowed;
 }
 
+.password-hint {
+  margin-top: 0.5rem;
+  font-size: 12px;
+  color: #ef4444;
+}
+
 .login-btn {
   width: 100%;
   padding: 0.875rem;
@@ -256,13 +373,49 @@ async function handleLogin() {
   gap: 0.5rem;
 }
 
-.error-message {
+.auth-switch {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: #f3f4f6;
+  padding: 0.25rem;
+  border-radius: 8px;
+}
+
+.switch-btn {
+  flex: 1;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.switch-btn.active {
+  background: white;
+  color: #3b82f6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.message {
   margin-top: 1rem;
   padding: 0.75rem;
-  background: #fef2f2;
-  color: #dc2626;
   border-radius: 8px;
   font-size: 14px;
+}
+
+.error-message {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.success-message {
+  background: #f0fdf4;
+  color: #16a34a;
 }
 
 .features {

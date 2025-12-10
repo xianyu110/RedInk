@@ -309,10 +309,14 @@ function addProvider(service: 'text' | 'image') {
       }
     : {
         baseURL: name === 'openai' ? 'https://apipro.maynor1024.live/v1' :
-                 name === 'gemini' ? 'https://apipro.maynor1024.live' : '',
+                 name === 'gemini' ? 'https://apipro.maynor1024.live' :
+                 name === 'jimeng' ? 'https://apipro.maynor1024.live/v1' : '',
         model: name === 'openai' ? 'dall-e-3' :
-               name === 'gemini' ? 'gemini-3-pro-image-preview' : '',
-        highConcurrency: false
+               name === 'gemini' ? 'gemini-3-pro-image-preview' :
+               name === 'jimeng' ? 'jimeng-4.5' : '',
+        highConcurrency: false,
+        // jimeng 默认使用小红书竖屏比例
+        ...(name === 'jimeng' && { size: '1024x1365' })
       }
 
   editingProvider.value = {
@@ -408,7 +412,9 @@ function getProviderDisplayName(name: string): string {
     'claude': 'Anthropic Claude',
     'dall-e': 'DALL-E',
     'midjourney': 'Midjourney',
-    'stable-diffusion': 'Stable Diffusion'
+    'stable-diffusion': 'Stable Diffusion',
+    'jimeng': 'Jimeng AI',  // 添加 jimeng 显示名称
+    'jimeng-4.5': 'Jimeng 4.5'
   }
   return displayNames[name] || name
 }

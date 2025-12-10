@@ -95,11 +95,18 @@ const DEFAULT_CONFIG: FrontendConfig = {
         baseURL: 'https://apipro.maynor1024.live/v1',
         model: 'dall-e-3',
         highConcurrency: false
+      },
+      jimeng: {
+        baseURL: 'https://apipro.maynor1024.live/v1',
+        model: 'jimeng-4.5',
+        highConcurrency: false,
+        // 默认使用小红书竖屏比例
+        size: '1024x1365'
       }
     }
   },
   preferences: {
-    useLocalConfig: false,
+    useLocalConfig: true,  // 默认开启本地配置
     showApiKeyInTest: false,
     defaultHighConcurrency: false
   }
