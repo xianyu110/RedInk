@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import { userService } from '@/services/supabaseService'
-import { supabase, checkSupabaseConfig } from '@/lib/supabase.js'
+import { supabase, checkSupabaseConfig } from '@/lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { login as loginApi, getCurrentUser, logout as logoutApi, type User } from '@/api/auth'
 

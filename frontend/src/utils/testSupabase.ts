@@ -1,5 +1,5 @@
 // 测试 Supabase 数据库连接和表是否存在
-import { supabase } from '@/lib/supabase.js'
+import { supabase } from '@/lib/supabase'
 
 export async function testSupabaseConnection() {
   console.log('开始测试 Supabase 连接...')
