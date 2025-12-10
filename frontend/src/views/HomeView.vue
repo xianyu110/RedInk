@@ -31,27 +31,25 @@
 
     <!-- 使用流程提示 -->
     <div class="usage-guide">
-      <h3>新用户使用流程</h3>
+      <h3>快速开始</h3>
       <div class="guide-steps">
-        <a href="https://apipro.maynor1024.live/register" target="_blank" class="guide-step">
+        <div class="guide-step">
           <span class="step-number">1</span>
-          <span class="step-text">注册</span>
-        </a>
+          <span class="step-text">获取 API Key</span>
+        </div>
         <span class="step-arrow">→</span>
-        <a href="https://apipro.maynor1024.live/login" target="_blank" class="guide-step">
+        <div class="guide-step" role="button" @click="openSettings">
           <span class="step-number">2</span>
-          <span class="step-text">登录</span>
-        </a>
+          <span class="step-text">配置 API Key</span>
+        </div>
         <span class="step-arrow">→</span>
-        <a href="https://apipro.maynor1024.live/console/topup" target="_blank" class="guide-step">
+        <div class="guide-step">
           <span class="step-number">3</span>
-          <span class="step-text">充值 (新用户可试用)</span>
-        </a>
-        <span class="step-arrow">→</span>
-        <a href="https://apipro.maynor1024.live/console/token" target="_blank" class="guide-step">
-          <span class="step-number">4</span>
-          <span class="step-text">获取令牌</span>
-        </a>
+          <span class="step-text">开始创作</span>
+        </div>
+      </div>
+      <div class="guide-note">
+        <a href="https://apipro.maynor1024.live" target="_blank" class="guide-link">前往获取 API Key →</a>
       </div>
     </div>
 
@@ -141,6 +139,11 @@ async function handleGenerate() {
   } finally {
     loading.value = false
   }
+}
+
+// 打开设置页面
+function openSettings() {
+  router.push('/settings')
 }
 </script>
 
@@ -240,6 +243,10 @@ async function handleGenerate() {
   box-shadow: 0 4px 16px rgba(255, 36, 66, 0.3);
 }
 
+.guide-step[role="button"] {
+  cursor: pointer;
+}
+
 .step-number {
   width: 24px;
   height: 24px;
@@ -327,5 +334,24 @@ async function handleGenerate() {
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.guide-note {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.guide-link {
+  color: var(--primary, #ff2442);
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.3s ease;
+}
+
+.guide-link:hover {
+  transform: translateX(4px);
 }
 </style>
