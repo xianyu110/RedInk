@@ -1,4 +1,4 @@
-import { supabase, type Database } from '@/lib/supabase'
+import { supabase, type Database } from '@/lib/supabase.js'
 import type { Page } from '@/api'
 
 // 用户服务
