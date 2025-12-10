@@ -123,6 +123,9 @@
       </div>
     </div>
   </div>
+
+  <!-- 新用户引导 -->
+  <OnboardingGuide v-if="showOnboarding" @close="showOnboarding = false" />
 </template>
 
 <script setup lang="ts">
@@ -130,6 +133,7 @@ import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { handleSupabaseError } from '@/utils/errorHandler'
+import OnboardingGuide from '@/components/OnboardingGuide.vue'
 
 const emit = defineEmits<{
   close: []
@@ -144,10 +148,21 @@ const displayName = ref('')
 const loading = ref(false)
 const error = ref('')
 const isLogin = ref(true) // true=登录, false=注册
+const showOnboarding = ref(false)
 
 // 判断是否显示密码输入框
 // Supabase 模式下，登录和注册都需要密码
 const showPassword = computed(() => authStore.isSupabaseEnabled)
+
+// 检查并显示新用户引导
+function checkAndShowOnboarding() {
+  // 检查是否已完成引导
+  const preferences = localStorage.getItem('onboarding_preferences')
+  if (!preferences) {
+    // 新用户，显示引导
+    showOnboarding.value = true
+  }
+}
 
 async function handleLogin() {
   if (!email.value) return
@@ -167,6 +182,8 @@ async function handleLogin() {
           error.value = 'success' // 使用特殊值表示成功消息
         } else {
           emit('close')
+          // 检查是否是新用户（首次登录）
+          checkAndShowOnboarding()
           // 如果有重定向地址，跳转到重定向地址
           const redirect = router.currentRoute.value.query.redirect as string
           if (redirect) {

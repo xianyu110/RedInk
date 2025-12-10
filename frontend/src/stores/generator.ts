@@ -40,6 +40,9 @@ export interface GeneratorState {
 
   // 用户上传的图片（用于图片生成参考）
   userImages: File[]
+
+  // 每页的参考图片索引
+  pageReferenceImages: Record<number, number[]>
 }
 
 const STORAGE_KEY = 'generator-state'
@@ -94,7 +97,8 @@ export const useGeneratorStore = defineStore('generator', {
       images: saved.images || [],
       taskId: saved.taskId || null,
       recordId: saved.recordId || null,
-      userImages: []  // 不从 localStorage 恢复
+      userImages: [],
+      pageReferenceImages: {}  // 不从 localStorage 恢复
     }
   },
 
@@ -269,8 +273,41 @@ export const useGeneratorStore = defineStore('generator', {
       this.taskId = null
       this.recordId = null
       this.userImages = []
+      this.pageReferenceImages = {}
       // 清除 localStorage
       localStorage.removeItem(STORAGE_KEY)
+    },
+
+    // 获取指定页面的参考图片
+    getPageReferenceImages(pageIndex: number): number[] {
+      return this.pageReferenceImages[pageIndex] || []
+    },
+
+    // 设置页面的参考图片
+    setPageReferenceImages(pageIndex: number, imageIndices: number[]) {
+      this.pageReferenceImages[pageIndex] = imageIndices
+    },
+
+    // 切换图片选择状态
+    toggleImageSelection(pageIndex: number, imageIndex: number) {
+      const current = this.getPageReferenceImages(pageIndex)
+      const index = current.indexOf(imageIndex)
+
+      if (index > -1) {
+        // 取消选择
+        current.splice(index, 1)
+      } else {
+        // 添加选择
+        current.push(imageIndex)
+      }
+
+      this.setPageReferenceImages(pageIndex, current)
+    },
+
+    // 检查图片是否被选中
+    isImageSelected(pageIndex: number, imageIndex: number): boolean {
+      const current = this.getPageReferenceImages(pageIndex)
+      return current.includes(imageIndex)
     },
 
     // 保存当前状态
