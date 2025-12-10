@@ -63,102 +63,99 @@
 
     <!-- 配置详情 -->
     <template v-if="useLocalConfig">
-      <!-- 文本生成配置 -->
+      <!-- API 端点配置 -->
       <div class="config-group">
-        <h3 class="config-group-title">文本生成服务</h3>
-        <div class="provider-cards">
-          <div
-            v-for="(provider, name) in config.textGeneration.providers"
-            :key="name"
-            class="provider-card"
-            :class="{ active: config.textGeneration.activeProvider === name }"
-          >
-            <div class="card-header">
-              <h4>{{ getProviderDisplayName(name) }}</h4>
-              <div class="card-actions">
-                <button
-                  class="btn-text"
-                  @click="activateTextProvider(name)"
-                  v-if="config.textGeneration.activeProvider !== name"
-                >
-                  激活
-                </button>
-                <span class="active-badge" v-else>当前激活</span>
-                <button class="btn-text" @click="editProvider('text', name)">编辑</button>
-              </div>
-            </div>
-            <div class="card-body">
-              <!-- API Key 使用全局配置，不再单独显示 -->
-              <div class="config-item">
-                <label>API 端点:</label>
-                <span class="config-value readonly">{{ provider.baseURL || '默认' }}</span>
-              </div>
-              <div class="config-item">
-                <label>模型:</label>
-                <span class="config-value">{{ provider.model || '默认' }}</span>
-              </div>
+        <h3 class="config-group-title">API 端点配置</h3>
+        <div class="api-endpoint-config">
+          <div class="form-group">
+            <label>API 端点地址</label>
+            <input
+              type="text"
+              v-model="endpointUrl"
+              class="form-input"
+              placeholder="例如: https://api.openai.com/v1"
+            />
+            <span class="form-hint">系统会自动检测并选择合适的 API 端点，无需手动选择</span>
+          </div>
+
+          <div class="test-section">
+            <button class="btn btn-secondary" @click="testConnection" :disabled="testing">
+              <span v-if="testing" class="spinner-small"></span>
+              {{ testing ? '测试中...' : '测试连接' }}
+            </button>
+            <div v-if="testResult" class="test-result" :class="{ success: testResult.success, error: !testResult.success }">
+              {{ testResult.message }}
             </div>
           </div>
         </div>
-
-        <button class="btn btn-outline" @click="addProvider('text')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          添加提供商
-        </button>
       </div>
 
-      <!-- 图片生成配置 -->
+      <!-- 服务状态 -->
       <div class="config-group">
-        <h3 class="config-group-title">图片生成服务</h3>
-        <div class="provider-cards">
-          <div
-            v-for="(provider, name) in config.imageGeneration.providers"
-            :key="name"
-            class="provider-card"
-            :class="{ active: config.imageGeneration.activeProvider === name }"
-          >
-            <div class="card-header">
-              <h4>{{ getProviderDisplayName(name) }}</h4>
-              <div class="card-actions">
-                <button
-                  class="btn-text"
-                  @click="activateImageProvider(name)"
-                  v-if="config.imageGeneration.activeProvider !== name"
-                >
-                  激活
-                </button>
-                <span class="active-badge" v-else>当前激活</span>
-                <button class="btn-text" @click="editProvider('image', name)">编辑</button>
-              </div>
+        <h3 class="config-group-title">服务状态</h3>
+        <div class="service-status">
+          <div class="status-item">
+            <label>文本生成:</label>
+            <span class="status-value" :class="{ active: hasTextService }">
+              {{ hasTextService ? '已配置' : '未配置' }}
+            </span>
+          </div>
+          <div class="status-item">
+            <label>图片生成:</label>
+            <span class="status-value" :class="{ active: hasImageService }">
+              {{ hasImageService ? '已配置' : '未配置' }}
+            </span>
+          </div>
+          <div class="status-item">
+            <label>自动检测:</label>
+            <span class="status-value active">已启用</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 模型配置 -->
+      <div class="config-group">
+        <h3 class="config-group-title">模型配置</h3>
+        <div class="model-config">
+          <!-- 文本模型 -->
+          <div class="model-section">
+            <h4 class="model-section-title">
+              <span class="model-icon">📝</span>
+              文本生成模型
+            </h4>
+            <div class="model-select-group">
+              <select v-model="textModel" @change="updateTextModel" class="model-select">
+                <option value="gpt-4">GPT-4 (推荐)</option>
+                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                <option value="doubao-pro-4k">豆包 Pro-4K</option>
+                <option value="claude-3-opus">Claude 3 Opus</option>
+                <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+              </select>
+              <span class="model-info">选择用于生成大纲和文案的模型</span>
             </div>
-            <div class="card-body">
-              <!-- API Key 使用全局配置，不再单独显示 -->
-              <div class="config-item">
-                <label>API 端点:</label>
-                <span class="config-value readonly">{{ provider.baseURL || '默认' }}</span>
-              </div>
-              <div class="config-item">
-                <label>模型:</label>
-                <span class="config-value">{{ provider.model || '默认' }}</span>
-              </div>
-              <div class="config-item">
-                <label>高并发模式:</label>
-                <span class="config-value">{{ provider.highConcurrency ? '开启' : '关闭' }}</span>
-              </div>
+          </div>
+
+          <!-- 图像模型 -->
+          <div class="model-section">
+            <h4 class="model-section-title">
+              <span class="model-icon">🎨</span>
+              图像生成模型
+            </h4>
+            <div class="model-select-group">
+              <select v-model="imageModel" @change="updateImageModel" class="model-select">
+                <option value="jimeng-4.5">即梦 4.5 (性价比首选)</option>
+                <option value="dall-e-3">DALL-E 3 (高质量)</option>
+                <option value="doubao-seedream-4-0-250828">豆包 Seedream (国风优选)</option>
+                <option value="gemini-3-pro-image-preview">Gemini 3 Pro Image</option>
+                <option value="midjourney-v6">Midjourney V6</option>
+              </select>
+              <span class="model-info">选择用于生成图片的模型</span>
             </div>
           </div>
         </div>
-
-        <button class="btn btn-outline" @click="addProvider('image')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          添加提供商
-        </button>
       </div>
 
       <!-- 配置操作 -->
@@ -213,24 +210,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useLocalConfigStore } from '@/stores/localConfig'
 import { type ProviderConfig } from '@/utils/configStorage'
-import ProviderEditModal from './ProviderEditModal.vue'
 import { useToast } from '@/composables/useToast'
+import { testApiConnection, clearEndpointCache } from '@/services/smartApiService'
 
 const localConfigStore = useLocalConfigStore()
 const { showToast } = useToast()
 
-const editingProvider = ref<{
-  service: 'text' | 'image'
-  name: string
-  config: ProviderConfig
+// 新的响应式数据
+const endpointUrl = ref('')
+const testing = ref(false)
+const testResult = ref<{
+  success: boolean
+  message?: string
 } | null>(null)
 
 const importInput = ref<HTMLInputElement>()
 const globalApiKey = ref('')
 const showGlobalApiKey = ref(false)
+
+// 模型配置
+const textModel = ref('gpt-4')
+const imageModel = ref('jimeng-4.5')
+
+// 移除 editingProvider，不再需要编辑对话框
 
 const config = computed(() => localConfigStore.config)
 const useLocalConfig = computed({
@@ -241,7 +246,90 @@ const useLocalConfig = computed({
 onMounted(() => {
   localConfigStore.init()
   globalApiKey.value = localConfigStore.config.globalApiKey || ''
+
+  // 初始化 endpoint URL
+  const activeTextProvider = localConfigStore.config.textGeneration.providers[
+    localConfigStore.config.textGeneration.activeProvider
+  ]
+  if (activeTextProvider?.baseURL) {
+    endpointUrl.value = activeTextProvider.baseURL
+  }
+
+  // 初始化模型值
+  const textProvider = localConfigStore.config.textGeneration.providers[
+    localConfigStore.config.textGeneration.activeProvider
+  ]
+  const imageProvider = localConfigStore.config.imageGeneration.providers[
+    localConfigStore.config.imageGeneration.activeProvider
+  ]
+
+  if (textProvider?.model) {
+    textModel.value = textProvider.model
+  }
+  if (imageProvider?.model) {
+    imageModel.value = imageProvider.model
+  }
 })
+
+// 计算属性
+const hasTextService = computed(() => {
+  return !!(globalApiKey.value && endpointUrl.value)
+})
+
+const hasImageService = computed(() => {
+  return !!(globalApiKey.value && endpointUrl.value)
+})
+
+// 监听 endpoint URL 变化
+watch(endpointUrl, (newUrl) => {
+  if (newUrl) {
+    // 更新所有提供商的 baseURL
+    Object.keys(config.value.textGeneration.providers).forEach(name => {
+      localConfigStore.updateTextProvider(name, { baseURL: newUrl })
+    })
+    Object.keys(config.value.imageGeneration.providers).forEach(name => {
+      localConfigStore.updateImageProvider(name, { baseURL: newUrl })
+    })
+
+    // 清除缓存以便重新检测
+    clearEndpointCache()
+  }
+})
+
+// 测试连接
+async function testConnection() {
+  if (!globalApiKey.value || !endpointUrl.value) {
+    showToast('请先配置 API Key 和端点地址', 'error')
+    return
+  }
+
+  testing.value = true
+  testResult.value = null
+
+  try {
+    // 测试文本生成
+    const textResult = await testApiConnection(endpointUrl.value, globalApiKey.value, 'text')
+    if (textResult.success) {
+      testResult.value = {
+        success: true,
+        message: `连接成功！检测到: ${textResult.detectedProvider} (${textResult.detectedModel})`
+      }
+      showToast('API 连接测试成功', 'success')
+    } else {
+      testResult.value = {
+        success: false,
+        message: textResult.message || '连接失败'
+      }
+    }
+  } catch (error: any) {
+    testResult.value = {
+      success: false,
+      message: error.message || '测试失败'
+    }
+  } finally {
+    testing.value = false
+  }
+}
 
 // 处理全局 API Key 变化
 function handleGlobalApiKeyChange() {
@@ -257,98 +345,7 @@ function toggleLocalConfig() {
   }
 }
 
-// 激活文本生成提供商
-function activateTextProvider(name: string) {
-  localConfigStore.activateTextProvider(name)
-  showToast(`已激活 ${getProviderDisplayName(name)} 作为文本生成服务`, 'success')
-}
 
-// 激活图片生成提供商
-function activateImageProvider(name: string) {
-  localConfigStore.activateImageProvider(name)
-  showToast(`已激活 ${getProviderDisplayName(name)} 作为图片生成服务`, 'success')
-}
-
-// 编辑提供商
-function editProvider(service: 'text' | 'image', name: string) {
-  const providers = service === 'text'
-    ? config.value.textGeneration.providers
-    : config.value.imageGeneration.providers
-
-  editingProvider.value = {
-    service,
-    name,
-    config: { ...providers[name] }
-  }
-}
-
-// 添加提供商
-function addProvider(service: 'text' | 'image') {
-  const name = prompt('请输入提供商名称（如: openai, gemini, claude 等）:')
-  if (!name) return
-
-  // 检查是否已存在
-  const providers = service === 'text'
-    ? config.value.textGeneration.providers
-    : config.value.imageGeneration.providers
-
-  if (providers[name]) {
-    showToast('提供商已存在', 'error')
-    return
-  }
-
-  // 创建新的提供商配置（不再需要 API Key）
-  const defaultConfig: ProviderConfig = service === 'text'
-    ? {
-        baseURL: name === 'openai' ? 'https://apipro.maynor1024.live/v1' :
-                 name === 'gemini' ? 'https://apipro.maynor1024.live' :
-                 name === 'claude' ? 'https://apipro.maynor1024.live/v1' : '',
-        model: name === 'openai' ? 'gpt-4o' :
-               name === 'gemini' ? 'gemini-2.0-flash' :
-               name === 'claude' ? 'claude-3-sonnet' : ''
-      }
-    : {
-        baseURL: name === 'openai' ? 'https://apipro.maynor1024.live/v1' :
-                 name === 'gemini' ? 'https://apipro.maynor1024.live' :
-                 name === 'jimeng' ? 'https://apipro.maynor1024.live/v1' : '',
-        model: name === 'openai' ? 'dall-e-3' :
-               name === 'gemini' ? 'gemini-3-pro-image-preview' :
-               name === 'jimeng' ? 'jimeng-4.5' : '',
-        highConcurrency: false,
-        // jimeng 默认使用小红书竖屏比例
-        ...(name === 'jimeng' && { size: '1024x1365' })
-      }
-
-  editingProvider.value = {
-    service,
-    name,
-    config: defaultConfig
-  }
-}
-
-// 保存提供商配置
-function handleSaveProvider(service: 'text' | 'image', name: string, providerConfig: ProviderConfig) {
-  const storeConfig = localConfigStore.config
-  if (service === 'text') {
-    // 检查是否为新添加的
-    const isNew = !storeConfig.textGeneration.providers[name]
-    if (isNew) {
-      localConfigStore.addTextProvider(name, providerConfig)
-    } else {
-      localConfigStore.updateTextProvider(name, providerConfig)
-    }
-  } else {
-    const isNew = !storeConfig.imageGeneration.providers[name]
-    if (isNew) {
-      localConfigStore.addImageProvider(name, providerConfig)
-    } else {
-      localConfigStore.updateImageProvider(name, providerConfig)
-    }
-  }
-
-  editingProvider.value = null
-  showToast('配置已保存', 'success')
-}
 
 // 导出配置
 function exportConfig() {
@@ -425,6 +422,20 @@ function maskApiKey(apiKey: string): string {
   const start = apiKey.substring(0, 4)
   const end = apiKey.substring(apiKey.length - 4)
   return `${start}...${end}`
+}
+
+// 更新文本模型
+function updateTextModel() {
+  const activeProvider = localConfigStore.config.textGeneration.activeProvider
+  localConfigStore.updateTextProvider(activeProvider, { model: textModel.value })
+  showToast('文本模型已更新', 'success')
+}
+
+// 更新图像模型
+function updateImageModel() {
+  const activeProvider = localConfigStore.config.imageGeneration.activeProvider
+  localConfigStore.updateImageProvider(activeProvider, { model: imageModel.value })
+  showToast('图像模型已更新', 'success')
 }
 </script>
 
@@ -781,5 +792,65 @@ input:checked + .slider:before {
     width: 100%;
     margin-top: 0.5rem;
   }
+}
+
+/* 模型配置样式 */
+.model-config {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.model-section {
+  background: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.model-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+.model-icon {
+  font-size: 20px;
+}
+
+.model-select-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.model-select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.model-select:hover {
+  border-color: #3b82f6;
+}
+
+.model-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.model-info {
+  font-size: 13px;
+  color: #6b7280;
 }
 </style>
