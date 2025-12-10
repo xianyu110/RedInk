@@ -1,18 +1,29 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Supabase 配置
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: localStorage,
-    storageKey: 'supabase.auth.token'
+// 确保环境变量存在
+if (!supabaseUrl || !supabaseAnonKey ||
+    supabaseUrl === 'YOUR_SUPABASE_URL' ||
+    supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
+  console.error('Supabase 配置缺失。请确保设置了 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 环境变量。')
+}
+
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: localStorage,
+      storageKey: 'supabase.auth.token'
+    }
   }
-})
+)
 
 // 数据库表类型定义
 export interface Database {
