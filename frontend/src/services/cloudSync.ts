@@ -298,8 +298,8 @@ export class CloudSyncService {
       const syncedCount = cloudProjects.length
 
       // 将云端项目转换为本地历史记录格式并合并
-      const { getAllHistory, saveHistory, createHistory } = await import('./historyService')
-      const localRecords = getAllHistory()
+      const { getAllHistory, saveHistory, createHistory, getLocalStorageHistory, saveLocalStorageHistory } = await import('./historyService')
+      const localRecords = getLocalStorageHistory()
 
       // 创建云端项目的映射
       const cloudProjectMap = new Map(cloudProjects.map(p => [p.id, p]))
@@ -328,7 +328,7 @@ export class CloudSyncService {
       }
 
       // 保存合并后的记录
-      saveHistory(mergedRecords)
+      saveLocalStorageHistory(mergedRecords)
 
       return {
         success: true,

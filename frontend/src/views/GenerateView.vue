@@ -270,7 +270,7 @@ onMounted(async () => {
       }
 
       // 只更新状态，不保存图片（避免 localStorage 超限）
-      updateHistory(store.recordId, {
+      await updateHistory(store.recordId, {
         status: status
       })
       console.log('✅ 历史记录状态已更新:', status)

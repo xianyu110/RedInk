@@ -162,15 +162,15 @@ const isScanning = ref(false)
 /**
  * 加载历史记录列表
  */
-function loadData() {
+async function loadData() {
   loading.value = true
   try {
     let statusFilter = currentTab.value === 'all' ? undefined : currentTab.value
     console.log('📋 加载历史记录列表, 页码:', currentPage.value, '状态:', statusFilter)
-    
-    const res = getHistoryList(currentPage.value, 12, statusFilter)
+
+    const res = await getHistoryList(currentPage.value, 12, statusFilter)
     console.log('📋 历史记录列表结果:', res)
-    
+
     if (res.success) {
       records.value = res.records
       totalPages.value = res.total_pages
@@ -188,9 +188,9 @@ function loadData() {
 /**
  * 加载统计数据
  */
-function loadStats() {
+async function loadStats() {
   try {
-    const res = getHistoryStats()
+    const res = await getHistoryStats()
     console.log('📊 统计数据:', res)
     if (res.success) stats.value = res
   } catch(e) {
@@ -210,14 +210,14 @@ function switchTab(tab: string) {
 /**
  * 搜索历史记录
  */
-function handleSearch() {
+async function handleSearch() {
   if (!searchKeyword.value.trim()) {
     loadData()
     return
   }
   loading.value = true
   try {
-    const res = searchHistory(searchKeyword.value)
+    const res = await searchHistory(searchKeyword.value)
     if (res.success) {
       records.value = res.records
       totalPages.value = 1
@@ -230,8 +230,8 @@ function handleSearch() {
 /**
  * 加载记录并跳转到编辑页
  */
-function loadRecord(id: string) {
-  const res = getHistory(id)
+async function loadRecord(id: string) {
+  const res = await getHistory(id)
   if (res.success && res.record) {
     store.setTopic(res.record.title)
     store.setOutline(res.record.outline.raw, res.record.outline.pages)
@@ -255,8 +255,8 @@ function loadRecord(id: string) {
 /**
  * 查看图片
  */
-function viewImages(id: string) {
-  const res = getHistory(id)
+async function viewImages(id: string) {
+  const res = await getHistory(id)
   if (res.success) viewingRecord.value = res.record
 }
 
@@ -271,9 +271,9 @@ function closeGallery() {
 /**
  * 确认删除
  */
-function confirmDelete(record: any) {
+async function confirmDelete(record: any) {
   if(confirm('确定删除吗？')) {
-    deleteHistory(record.id)
+    await deleteHistory(record.id)
     loadData()
     loadStats()
   }
@@ -373,13 +373,13 @@ function handleScanAll() {
   }
 }
 
-onMounted(() => {
-  loadData()
-  loadStats()
+onMounted(async () => {
+  await loadData()
+  await loadStats()
 
   // 检查路由参数，如果有 ID 则自动打开图片查看器
   if (route.params.id) {
-    viewImages(route.params.id as string)
+    await viewImages(route.params.id as string)
   }
 })
 </script>
