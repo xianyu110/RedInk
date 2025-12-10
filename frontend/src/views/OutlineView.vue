@@ -35,6 +35,21 @@
           </div>
           
           <div class="card-controls">
+            <!-- 参考图片指示器 -->
+            <button
+              v-if="store.userImages.length > 0"
+              class="icon-btn"
+              @click="showImageSelector(idx)"
+              :class="{ active: store.getPageReferenceImages(page.index).length > 0 }"
+              :title="store.getPageReferenceImages(page.index).length > 0 ? `${store.getPageReferenceImages(page.index).length} 张参考图片` : '选择参考图片'"
+            >
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                 <polyline points="21 15 16 10 5 21"></polyline>
+               </svg>
+               <span v-if="store.getPageReferenceImages(page.index).length > 0" class="badge">{{ store.getPageReferenceImages(page.index).length }}</span>
+            </button>
             <div class="drag-handle" title="拖拽排序">
                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>
             </div>
@@ -64,6 +79,38 @@
     </div>
     
     <div style="height: 100px;"></div>
+
+    <!-- 图片选择器弹窗 -->
+    <div v-if="imageSelectorVisible" class="modal-overlay" @click.self="closeImageSelector">
+      <div class="modal-content image-selector">
+        <div class="modal-header">
+          <h3>为第 {{ selectedPageIndex + 1 }} 页选择参考图片</h3>
+          <button class="close-btn" @click="closeImageSelector">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="image-grid">
+            <div
+              v-for="(image, index) in store.userImages"
+              :key="index"
+              class="image-item"
+              :class="{ selected: isImageSelected(selectedPageIndex, index) }"
+              @click="toggleImageSelection(selectedPageIndex, index)"
+            >
+              <img :src="getImageUrl(image)" :alt="`参考图片 ${index + 1}`" />
+              <div class="check-mark">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn" @click="closeImageSelector">取消</button>
+          <button class="btn btn-primary" @click="confirmImageSelection">确定</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -77,6 +124,11 @@ const store = useGeneratorStore()
 
 const dragOverIndex = ref<number | null>(null)
 const draggedIndex = ref<number | null>(null)
+
+// 图片选择器相关
+const imageSelectorVisible = ref(false)
+const selectedPageIndex = ref(0)
+const tempSelectedImages = ref<number[]>([])
 
 const getPageTypeName = (type: string) => {
   const names = {
@@ -125,6 +177,42 @@ const addPage = (type: 'cover' | 'content' | 'summary') => {
 
 const goBack = () => {
   router.back()
+}
+
+// 图片选择器方法
+const showImageSelector = (pageIndex: number) => {
+  selectedPageIndex.value = pageIndex
+  // 初始化临时选择状态
+  const currentSelection = store.pageImageMapping[pageIndex] || []
+  tempSelectedImages.value = [...currentSelection]
+  imageSelectorVisible.value = true
+}
+
+const closeImageSelector = () => {
+  imageSelectorVisible.value = false
+  tempSelectedImages.value = []
+}
+
+const isImageSelected = (pageIndex: number, imageIndex: number) => {
+  return tempSelectedImages.value.includes(imageIndex)
+}
+
+const toggleImageSelection = (pageIndex: number, imageIndex: number) => {
+  const index = tempSelectedImages.value.indexOf(imageIndex)
+  if (index > -1) {
+    tempSelectedImages.value.splice(index, 1)
+  } else {
+    tempSelectedImages.value.push(imageIndex)
+  }
+}
+
+const confirmImageSelection = () => {
+  store.setPageImageMapping(selectedPageIndex.value, tempSelectedImages.value)
+  closeImageSelector()
+}
+
+const getImageUrl = (file: File) => {
+  return URL.createObjectURL(file)
 }
 
 const startGeneration = () => {
@@ -283,5 +371,139 @@ const startGeneration = () => {
   font-size: 32px;
   font-weight: 300;
   margin-bottom: 8px;
+}
+
+/* 图片选择器样式 */
+.icon-btn.active {
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.1);
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--primary);
+  color: white;
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 10px;
+  line-height: 1;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.image-selector .modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.image-selector .modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.close-btn {
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.image-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.image-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-item.selected {
+  border: 3px solid var(--primary);
+}
+
+.check-mark {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.2s;
+}
+
+.image-item.selected .check-mark {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.modal-footer {
+  padding: 20px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 </style>
